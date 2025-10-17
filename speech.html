@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alternating Speakers</title>
+  <style>
+    /* Overall theme */
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(to bottom right, #e8f4fc, #cfe9ff);
+      color: #03396c;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #02577a;
+      font-size: 2rem;
+      margin-top: 10px;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 50, 0.1);
+    }
+
+    /* Button styling */
+    button {
+      background: linear-gradient(to right, #4dafff, #007bff);
+      border: none;
+      color: white;
+      padding: 10px 22px;
+      margin: 8px 5px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 3px 6px rgba(0, 123, 255, 0.25);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 123, 255, 0.35);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Image styling */
+    img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 3px solid #4dafff;
+      margin: 10px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease;
+    }
+
+    img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Dialogue box */
+    .dialogue-box {
+      background: white;
+      border-radius: 12px;
+      border-left: 5px solid #007bff;
+      padding: 20px;
+      margin-top: 30px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      min-height: 80px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .dialogue-box:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    #dialogue-text {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #044a7f;
+    }
+
+    /* Layout alignment */
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top-controls">
+    <img src="pics/me.jpg" id="img1">
+    <img src="pics/piyush.png.jpg" id="img2">
+  </div>
+
+  <div class="top-controls">
+    <button onclick="crx_speakAll()">🎤 Speak All</button>
+    <button onclick="crx_speak('Hello Champak',0,3000)">🧑‍💻 Speaker 1</button>
+    <button onclick="crx_speak('Bye Champak',1,1000)">🧑‍💼 Speaker 2</button>
+  </div>
+
+  <h1>Alternating Speakers Demo</h1>
+
+  <div class="dialogue-box">
+    <p id="dialogue-text"></p>
+  </div>
+
+  <textarea id="txt">
+    *Conversation: Champak Roy and Manoj — Understanding Bubble Sort*
+
+
+Manoj: Sir, I keep hearing about Bubble Sort in DSA. But I don’t understand why it’s called that. Can you please explain?
+
+
+
+
+Champak Roy: (smiling) Of course, Manoj. The name itself gives a hint — think of bubbles in water.  
+When you blow bubbles, what happens?
+
+
+
+
+Manoj: They rise to the top!
+
+
+
+
+Champak Roy: Exactly! In Bubble Sort, the largest element “bubbles up” to the end of the list after each round of comparison.  
+So, after the first pass, the biggest number is fixed at the last position.
+
+
+
+
+Manoj: Oh! So it’s like a competition where the biggest number wins each round?
+
+
+
+
+Champak Roy: (laughs) That’s one way to put it! Let’s take an example:  
+[5, 1, 4, 2, 8]
+
+
+
+
+Champak Roy: We’ll compare adjacent elements and swap if the left one is greater than the right one.  
+👉 Compare 5 and 1 → swap → [1, 5, 4, 2, 8]  
+Then 5 and 4 → swap → [1, 4, 5, 2, 8]  
+Then 5 and 2 → swap → [1, 4, 2, 5, 8]  
+Then 5 and 8 → no swap.  
+After the first pass, 8 has reached its correct place!
+
+
+
+
+Manoj: So after every pass, one largest element settles at the end?
+
+
+
+
+Champak Roy: Exactly! That’s why the number of comparisons decreases with each pass.  
+
+
+Let’s visualize it:
+
+Initial:  [5][1][4][2][8]  
+Pass 1:   [1][4][2][5][8]   ← 8 rises to top  
+Pass 2:   [1][2][4][5][8]   ← 5 in place  
+Sorted:   [1][2][4][5][8]
+
+
+
+
+Manoj: That looks neat! Can we write pseudocode for this?
+
+
+
+
+Champak Roy: Of course. Here’s the simple version:
+
+for i = 0 to n-1:
+    for j = 0 to n-i-2:
+        if arr[j] > arr[j+1]:
+            swap(arr[j], arr[j+1])
+
+
+
+
+Manoj: So the inner loop compares neighbors, and the outer loop controls the passes?
+
+
+
+
+Champak Roy: Correct. After each pass, the largest element is at the end, so we reduce comparisons next time.
+
+
+
+
+Manoj: But Sir, what if the array is already sorted? Will it still do all passes?
+
+
+
+
+Champak Roy: Very good question, Manoj!  
+We can optimize it using a flag. If no swaps happen in a pass, the array is already sorted.
+
+for i = 0 to n-1:
+    swapped = false
+    for j = 0 to n-i-2:
+        if arr[j] > arr[j+1]:
+            swap(arr[j], arr[j+1])
+            swapped = true
+    if not swapped:
+        break
+
+
+
+
+Manoj: So the loop stops early if no swap occurs. Smart!
+
+
+
+
+Champak Roy: Exactly. Let’s dry run this on [3, 2, 1].
+
+Pass 1: compare 3 & 2 → swap → [2, 3, 1]  
+         compare 3 & 1 → swap → [2, 1, 3]  
+Pass 2: compare 2 & 1 → swap → [1, 2, 3]  
+Pass 3: no swaps → stop!
+
+
+
+
+Manoj: So total 3 swaps, and the array is sorted. Nice!
+
+
+
+
+Champak Roy: Right. And that’s how Bubble Sort works — easy to understand, but not the fastest.  
+
+Let’s discuss efficiency:
+- Best Case: O(n)
+- Average Case: O(n²)
+- Worst Case: O(n²)
+- Space Complexity: O(1)
+- Stable Sort: Yes
+
+
+
+
+Manoj: So we use it mainly for learning, not real-world sorting?
+
+
+
+
+Champak Roy: Exactly. It’s a “learning sort”. It helps you understand how comparisons and swaps work — the base of more advanced algorithms like Quick Sort and Merge Sort.
+
+
+
+
+Manoj: That’s clear now, Sir. So Bubble Sort is:
+1. Based on comparing adjacent elements.  
+2. Moves the largest element to the end in each pass.  
+3. Can be optimized with a flag.  
+4. Has O(n²) time complexity in the worst case.
+
+
+
+
+Champak Roy: Excellent summary, Manoj!  
+Now you can code it easily in Python.
+
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n-i-1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+    return arr
+
+print(bubble_sort([5, 1, 4, 2, 8]))
+
+
+
+
+Manoj: (smiling) Thank you, Sir. I’ll remember — let the biggest bubble rise!
+
+
+
+
+Champak Roy: (laughs) Well said, Manoj. That’s the Bubble Sort spirit!
+
+  </textarea>
+
+  <script src="speaker.js"></script>
+</body>
+
+</html>

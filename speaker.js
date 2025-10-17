@@ -7,7 +7,14 @@ const divshow = document.getElementById("dialogue-text");
 const pic1 = document.getElementById("img1");
 const pic2 = document.getElementById("img2");
 /* Delay helper */
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
 async function crx_speakAll() {
     loadVoices();
     let texttospeak = txt.value.trim();

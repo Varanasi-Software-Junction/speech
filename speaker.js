@@ -23,7 +23,8 @@ async function crx_speakAll() {
 
 
 function crx_speak(texttobespoken, voiceno, timeforspeaking) {
-    divshow.innerHTML = texttobespoken;
+    
+    divshow.innerHTML +="<br>" + texttobespoken;
     if (voiceno == 0) {
         pic1.style.visibility = "visible";
         pic2.style.visibility = "hidden";
@@ -34,6 +35,7 @@ function crx_speak(texttobespoken, voiceno, timeforspeaking) {
         pic2.style.visibility = "visible";
     }
     return new Promise(resolve => {
+        
         const utterance = new SpeechSynthesisUtterance(texttobespoken);
         utterance.voice = voices[voiceno];
         utterance.onend = resolve; // Resolves the promise when speech ends

@@ -1,11 +1,25 @@
-<!-- Example HTML elements (for reference) -->
+<!-- Example HTML (for reference) -->
 <!--
 <button id="start-btn">Start</button>
-<div id="dialogue-text"></div>
-<textarea id="txt"></textarea>
-<img id="img1" src="teacher.png" style="visibility:hidden">
-<img id="img2" src="student.png" style="visibility:hidden">
+<div id="dialogue-text" style="max-height:300px; overflow:auto; border:1px solid #ddd; padding:8px;"></div>
+<textarea id="txt" rows="8" style="width:100%">
+Hello student. Let's learn bubble sort.
+
+OK teacher. Show me how it works.
+</textarea>
+<img id="img1" src="teacher.png" style="visibility:hidden; width:80px;">
+<img id="img2" src="student.png" style="visibility:hidden; width:80px;">
 -->
+
+<style>
+/* Highlight style for the currently spoken word */
+.highlighted-word {
+  background: #ffea61;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.dialogue-paragraph { margin: 0 0 0.6rem 0; line-height:1.5; }
+</style>
 
 <script>
 const synth = window.speechSynthesis;
@@ -13,38 +27,29 @@ const startBtn = document.getElementById('start-btn');
 const dialogueText = document.getElementById('dialogue-text');
 let voices = [];
 const txt = document.getElementById("txt");
-const divshow = dialogueText; // same element
+const divshow = dialogueText;
 const pic1 = document.getElementById("img1");
 const pic2 = document.getElementById("img2");
 
 /* Delay helper */
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-/* Load voices and return a Promise that resolves when voices are available */
+/* Voice loader */
 function loadVoicesAsync(timeout = 2000) {
     return new Promise((resolve) => {
         const got = () => {
-            voices = synth.getVoices();
-            // Filter out nulls; keep unique by name if needed
-            voices = voices.filter(v => v && v.name);
+            voices = synth.getVoices().filter(v => v && v.name);
             if (voices.length > 0) resolve(voices);
         };
-
-        // Try immediately
         got();
-
-        // If voices are not yet available, wait for the event
         if (voices.length === 0) {
-            // Some browsers fire this event; attach handler once
             synth.onvoiceschanged = () => {
                 got();
                 if (voices.length > 0) resolve(voices);
             };
-
-            // Fallback timeout: resolve whatever we have after `timeout` ms
             setTimeout(() => {
                 got();
-                resolve(voices);
+                resolve(voices); // resolve whatever we have
             }, timeout);
         } else {
             resolve(voices);
@@ -52,10 +57,77 @@ function loadVoicesAsync(timeout = 2000) {
     });
 }
 
-/* Speak entire text area split by triple-newline (as your original code used) */
+/* Turn a paragraph string into a paragraph element whose words are wrapped in spans.
+   Also returns an array of {start,end,span} for quick lookup. */
+function createParagraphSpans(text) {
+    const p = document.createElement('p');
+    p.className = 'dialogue-paragraph';
+
+    // We'll use regex to find contiguous non-whitespace tokens and their indices
+    // This preserves punctuation attached to words (so highlighting matches what the speech engine reports).
+    const wordRegex = /(\S+)/g;
+    let match;
+    const indexMap = []; // {start, end, span}
+
+    let lastIndex = 0;
+    while ((match = wordRegex.exec(text)) !== null) {
+        const word = match[0];
+        const start = match.index;
+        const end = start + word.length; // exclusive
+
+        // append the text between lastIndex and start as plain text node (preserves spaces)
+        if (start > lastIndex) {
+            p.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+        }
+
+        // create span for word
+        const span = document.createElement('span');
+        span.textContent = word;
+        span.dataset.start = start;
+        span.dataset.end = end;
+        p.appendChild(span);
+
+        indexMap.push({ start, end, span });
+
+        lastIndex = end;
+    }
+
+    // append any trailing whitespace/text
+    if (lastIndex < text.length) {
+        p.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    return { paragraphElement: p, indexMap };
+}
+
+/* Highlight the word whose span contains charIndex */
+function highlightForCharIndex(indexMap, charIndex) {
+    // naive linear search is OK for paragraphs of moderate size
+    for (let i = 0; i < indexMap.length; i++) {
+        const { start, end, span } = indexMap[i];
+        if (charIndex >= start && charIndex < end) {
+            // clear others
+            indexMap.forEach(m => m.span.classList.toggle('highlighted-word', m.span === span));
+            // ensure the highlighted span is visible in the container
+            span.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            return;
+        }
+    }
+    // if none matched, clear highlights
+    indexMap.forEach(m => m.span.classList.remove('highlighted-word'));
+}
+
+/* Append paragraph to dialogue display and return its indexMap */
+function appendDialogueWithSpans(text) {
+    const { paragraphElement, indexMap } = createParagraphSpans(text);
+    divshow.appendChild(paragraphElement);
+    paragraphElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    return indexMap;
+}
+
+/* Speak full set of paragraphs split by triple-newline, highlighting words in real time */
 async function crx_speakAll() {
     startBtn.disabled = true;
-    // load voices (wait until populated or timeout)
     await loadVoicesAsync();
 
     let texttospeak = txt.value.trim();
@@ -65,7 +137,6 @@ async function crx_speakAll() {
         return;
     }
 
-    // split by triple newline (preserve your original separator)
     let speakarray = texttospeak.split("\n\n\n").map(s => s.trim()).filter(Boolean);
     if (speakarray.length === 0) {
         dialogueText.textContent = 'No valid lines found after splitting. Check separators.';
@@ -73,14 +144,12 @@ async function crx_speakAll() {
         return;
     }
 
-    // Ensure at least two distinct voices; if only one available, reuse it but flip pitch slightly
     const voiceCount = Math.max(1, voices.length);
+
     for (let i = 0; i < speakarray.length; i++) {
         const paragraph = speakarray[i];
-        // choose voice index (wrap if not enough)
-        let voiceIndex = i % voiceCount;
 
-        // toggle pictures based on parity (teacher/student)
+        // toggle pics based on parity
         if ((i % 2) === 0) {
             pic1 && (pic1.style.visibility = "visible");
             pic2 && (pic2.style.visibility = "hidden");
@@ -89,86 +158,93 @@ async function crx_speakAll() {
             pic2 && (pic2.style.visibility = "visible");
         }
 
-        // show text progressively
-        appendDialogue(paragraph);
+        // create spans for the paragraph and get index map
+        const indexMap = appendDialogueWithSpans(paragraph);
 
         try {
-            // await the speech; pass voiceIndex
-            await crx_speak(paragraph, voiceIndex);
+            await crx_speakWithHighlight(paragraph, i % voiceCount, indexMap);
         } catch (err) {
             console.error("Speech error:", err);
-            // continue to next line
         }
 
-        // short pause between lines so it doesn't sound abrupt
+        // small pause between paragraphs
         await wait(250);
     }
 
-    // finished
+    // finished: hide pics, clear highlights, re-enable
     pic1 && (pic1.style.visibility = "hidden");
     pic2 && (pic2.style.visibility = "hidden");
     startBtn.disabled = false;
 }
 
-/* Append text to dialogue and scroll into view */
-function appendDialogue(text) {
-    const p = document.createElement('p');
-    p.textContent = text;
-    divshow.appendChild(p);
-    // scroll the last line into view
-    p.scrollIntoView({ behavior: 'smooth', block: 'end' });
-}
-
-/* Speak one chunk and resolve when it ends (or on error/timeouts) */
-function crx_speak(texttobespoken, voiceIdx) {
-    // cancel any previous queued utterances to avoid overlaps
-    // (optional — comment out if you prefer queuing)
+/* Speak a single paragraph and highlight words using onboundary if available */
+function crx_speakWithHighlight(texttobespoken, voiceIdx, indexMap) {
+    // cancel any previous queued utterances so we don't overlap
     synth.cancel();
 
     return new Promise((resolve, reject) => {
         const utterance = new SpeechSynthesisUtterance(texttobespoken);
 
-        // Choose voice if available
+        // set voice if available
         if (voices && voices.length > 0) {
-            // clamp index
             const idx = Math.max(0, Math.min(voiceIdx, voices.length - 1));
             utterance.voice = voices[idx];
         }
 
-        // Slightly vary pitch/ rate for alternating speakers if only one voice
+        // fallback pitch/ rate adjustments if only one voice
         if (!utterance.voice || voices.length < 2) {
-            // use pitch to simulate a different 'speaker' if needed
             utterance.pitch = (voiceIdx % 2 === 0) ? 1.0 : 0.9;
             utterance.rate = 1.0;
         } else {
-            // optional: set rate/pitch for clarity
             utterance.pitch = 1.0;
             utterance.rate = 1.0;
         }
 
-        // Resolve on end or onerror; add a safety timeout
+        // Safety timeout in case onend doesn't fire (per-utterance)
         let finished = false;
         const safetyTimeout = setTimeout(() => {
             if (!finished) {
                 finished = true;
                 console.warn("Utterance safety timeout reached — resolving anyway.");
                 try { synth.cancel(); } catch (e) {}
+                // clear any highlights
+                indexMap.forEach(m => m.span.classList.remove('highlighted-word'));
                 resolve();
             }
-        }, 20000); // 20s fallback per utterance
+        }, 20000);
+
+        // If the browser supports onboundary, use it to highlight words
+        // event.charIndex is relative to utterance.text
+        if ('onboundary' in SpeechSynthesisUtterance.prototype) {
+            utterance.onboundary = (event) => {
+                // We are only interested in word boundaries; some engines produce 'word' or boundaryType 2
+                // Different browsers may behave slightly differently; rely on charIndex presence
+                if (typeof event.charIndex === 'number') {
+                    highlightForCharIndex(indexMap, event.charIndex);
+                }
+            };
+        } else {
+            // Browser doesn't support boundary events; we can try a naive fallback using time-based highlighting
+            // (not implemented here — keep words unhighlighted)
+            console.info('onboundary not supported in this browser; real-time word highlighting unavailable.');
+        }
 
         utterance.onend = () => {
             if (finished) return;
             finished = true;
             clearTimeout(safetyTimeout);
+            // clear highlights when finished speaking the paragraph
+            indexMap.forEach(m => m.span.classList.remove('highlighted-word'));
             resolve();
         };
+
         utterance.onerror = (ev) => {
             if (finished) return;
             finished = true;
             clearTimeout(safetyTimeout);
             console.error("Utterance error:", ev);
-            resolve(); // resolve so the sequence continues
+            indexMap.forEach(m => m.span.classList.remove('highlighted-word'));
+            resolve(); // resolve so we continue with next paragraphs
         };
 
         try {
@@ -182,15 +258,7 @@ function crx_speak(texttobespoken, voiceIdx) {
 
 /* Start button wiring */
 startBtn.addEventListener('click', () => {
-    // prevent double clicks
     if (startBtn.disabled) return;
     crx_speakAll();
 });
-
-// Optional: expose a Stop button API if you want to stop mid-way
-// Example:
-// document.getElementById('stop-btn').addEventListener('click', () => {
-//    synth.cancel();
-//    startBtn.disabled = false;
-//});
 </script>

@@ -1,35 +1,63 @@
-// tester.js
+// tester.js (improved)
 // Speak text from a textarea line-by-line, showing words and highlighting the current word.
-// Includes pause/resume/stop controls and rate/pitch settings.
+// Public API (unchanged): showText(text, { rate, pitch, voiceName })
+// Controls: pauseSpeech(), resumeSpeech(), stopSpeech()
 
-// small waits to allow UI update and spacing between words
 const UI_PRE_SPEAK_WAIT = 10;     // ms before speaking a new word (tiny)
 const INTER_WORD_MIN_PAUSE = 40;  // ms minimum pause after a word
 const synth = window.speechSynthesis;
 let voices = [];
 
-// DOM
+// DOM (expects these IDs in your HTML)
 const displayDiv = document.getElementById('dd');
 const totaldiv = document.getElementById('currentdiv');
 
 // control flags
-let shouldStop = false;    // set true to abort the speaking loop
-let isSpeakingSequence = false; // true while speaking sequence is running
+let shouldStop = false;          // set true to abort the speaking loop
+let isSpeakingSequence = false;  // true while a showText run is active
 
-// load voices (browsers load voices asynchronously)
+// ------------------------- voices loading -------------------------
 function getAllVoices(){
   voices = synth.getVoices() || [];
-  voices.sort((a,b) => (a.lang > b.lang ? 1 : -1));
+  // sort for stable order (by language then name)
+  voices.sort((a,b) => {
+    if (a.lang === b.lang) return (a.name > b.name) ? 1 : -1;
+    return (a.lang > b.lang) ? 1 : -1;
+  });
 }
 synth.onvoiceschanged = getAllVoices;
 getAllVoices();
 
-// simple wait helper
-function wait(ms){
-  return new Promise(res => setTimeout(res, ms));
+// Promise that resolves when voices are available (or after timeout)
+function ensureVoices(timeout = 1500){
+  return new Promise((resolve) => {
+    if (voices.length > 0) return resolve(voices);
+    let resolved = false;
+    const onVoices = () => {
+      if (resolved) return;
+      getAllVoices();
+      resolved = true;
+      resolve(voices);
+      cleanup();
+    };
+    const cleanup = () => {
+      clearTimeout(timer);
+      synth.removeEventListener?.('voiceschanged', onVoices);
+    };
+    synth.addEventListener?.('voiceschanged', onVoices);
+    const timer = setTimeout(() => {
+      if (resolved) return;
+      getAllVoices();
+      resolved = true;
+      resolve(voices);
+      cleanup();
+    }, timeout);
+  });
 }
 
-// Add a word element and return the element (for highlighting)
+// ------------------------- helpers -------------------------
+function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
+
 function addWord(word, className = 'defaultwords'){
   const p = document.createElement('p');
   p.className = className;
@@ -38,37 +66,43 @@ function addWord(word, className = 'defaultwords'){
   return p;
 }
 
-// Speak a single word and resolve when utterance ends (or on error).
-// Accepts voice/rate/pitch/volume in options.
-function speakWord(word, { rate = 1.0, pitch = 1.0, volume = 1.0 } = {}){
+// speak single word and resolve when utterance ends or errors
+function speakWord(word, { rate = 1.0, pitch = 1.0, volume = 1.0, voiceName = null } = {}){
   return new Promise((resolve) => {
-    // create utterance
+    if (!('speechSynthesis' in window)) {
+      console.warn('speechSynthesis not available in this browser');
+      return resolve();
+    }
+
     const u = new SpeechSynthesisUtterance(word);
     u.rate = rate;
     u.pitch = pitch;
     u.volume = volume;
 
-    // pick english voice if available
+    // try to set voice by name (if provided); otherwise choose first English-like voice
     if (voices.length > 0) {
-      const en = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-      u.voice = en || voices[0];
+      if (voiceName) {
+        const match = voices.find(v => v.name === voiceName);
+        if (match) u.voice = match;
+      }
+      if (!u.voice) {
+        const en = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+        u.voice = en || voices[0];
+      }
     }
 
     u.onend = () => resolve();
-    u.onerror = () => {
-      console.warn('Utterance error for:', word);
+    u.onerror = (e) => {
+      console.warn('Utterance error for:', word, e);
       resolve();
     };
 
-    // speak
     synth.speak(u);
   });
 }
 
-// Speak a single sentence word-by-word. This checks shouldStop between words to allow immediate abort.
-// Returns true if completed normally, false if aborted.
+// speak one sentence word-by-word
 async function speakSentenceWords(sentence, opts){
-  // clear display for this sentence
   displayDiv.innerHTML = '';
   totaldiv.innerHTML = '';
 
@@ -82,95 +116,87 @@ async function speakSentenceWords(sentence, opts){
     const word = words[i];
     const el = elements[i];
 
-    // highlight current word
+    // highlight current
     elements.forEach(e => e.classList.remove('currentword'));
     el.classList.add('currentword');
     totaldiv.textContent = word;
 
-    // small UI pause before speaking
+    // tiny pause before speaking (UI smoothing)
     await wait(UI_PRE_SPEAK_WAIT);
 
-    // if paused externally, wait until resumed
+    // if paused via API (synth.paused), wait until resumed (or aborted)
     while (synth.paused) {
       await wait(50);
       if (shouldStop) return false;
     }
 
-    // speak and wait for it to finish
+    // speak and wait
     await speakWord(word, opts);
 
-    // post-word pause (natural rhythm)
+    // natural pause: depends a bit on word length
     await wait(Math.max(INTER_WORD_MIN_PAUSE, word.length * 25));
   }
 
-  // clear highlight after sentence
+  // cleanup UI for this sentence
   elements.forEach(e => e.classList.remove('currentword'));
   totaldiv.innerHTML = '';
   displayDiv.innerHTML = '';
   return true;
 }
 
-// Public API: Speak the text from textarea.
-// The text is split into lines; each non-empty line is treated as a sentence.
-// options: { rate, pitch }
-async function showText(text, opts = { rate: 1.0, pitch: 1.0 }){
+// ------------------------- public API -------------------------
+async function showText(text, opts = { rate: 1.0, pitch: 1.0, voiceName: null }){
+  if (!('speechSynthesis' in window)) {
+    console.warn('speechSynthesis not supported in this browser.');
+    return;
+  }
+
+  // if already running, stop previous run and give tiny breathing room
   if (isSpeakingSequence) {
-    // If already speaking, stop and start fresh
     stopSpeech();
-    // tiny pause to allow cancellation to take effect
-    await wait(50);
+    await wait(60);
   }
 
   shouldStop = false;
   isSpeakingSequence = true;
 
-  // Ensure speech permissions triggered by a user gesture (most browsers require it).
-  // If no voice loaded yet, trigger voices load again (best-effort).
-  if (voices.length === 0) getAllVoices();
+  // ensure voices loaded (best-effort)
+  await ensureVoices();
 
-  // Split into lines (user places each sentence on its own line)
+  // split into non-empty trimmed lines
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
   for (let i=0; i<lines.length; i++){
     if (shouldStop) break;
-
-    // speak the sentence word by word; abort early if user pressed Stop
     const completed = await speakSentenceWords(lines[i], opts);
     if (!completed) break;
-
-    // small pause between sentences
+    // pause between sentences
     await wait(120);
   }
 
   isSpeakingSequence = false;
 }
 
-// Pause the current speech (browser API)
+// Pause / resume / stop
 function pauseSpeech(){
-  if (synth.speaking && !synth.paused){
-    synth.pause();
-  }
+  if (synth.speaking && !synth.paused) synth.pause();
 }
-
-// Resume if paused
 function resumeSpeech(){
-  if (synth.paused){
-    synth.resume();
-  }
+  if (synth.paused) synth.resume();
 }
-
-// Stop everything immediately
 function stopSpeech(){
   shouldStop = true;
   if (synth.speaking || synth.pending) synth.cancel();
-  // cleanup UI
   displayDiv.innerHTML = '';
   totaldiv.innerHTML = '';
   isSpeakingSequence = false;
 }
 
-// expose simple functions to window so the HTML can call them
+// Expose publicly for HTML to call
 window.showText = showText;
 window.pauseSpeech = pauseSpeech;
 window.resumeSpeech = resumeSpeech;
 window.stopSpeech = stopSpeech;
+
+// Optional: helper to list voices (useful for building a simple selector in your page)
+window.__getAvailableVoices = () => voices.slice();

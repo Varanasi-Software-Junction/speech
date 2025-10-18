@@ -1,0 +1,41 @@
+.highlightwords {
+    border-color: lightblue;
+    border-style: ridge;
+    background-color: yellow;
+    width: fit-content;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 1.05rem;
+}
+
+.defaultwords {
+    color: blue;
+    display: inline-block;
+    margin: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.03);
+}
+
+.currentword {
+    background: orange;
+    color: white;
+    transform: scale(1.03);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+textarea#textinput {
+    width: 90%;
+    max-width: 900px;
+    display: block;
+    margin: 10px 0;
+    padding: 8px;
+    font-size: 1rem;
+}
+
+.buttons { margin-bottom: 12px; }
+.buttons button { margin-right: 8px; padding: 6px 10px; }
+
+.controls-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+.controls-row input[type="range"] { vertical-align: middle; }

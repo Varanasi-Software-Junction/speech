@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tutorials-Tester</title>
+  <link rel="stylesheet" href="teacher.css" />
+</head>
+
+<body>
+  <h2>Speak from textarea</h2>
+
+  <div class="controls-row">
+    <label for="rate">Rate</label>
+    <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1">
+    <span id="rateVal">1</span>
+
+    <label for="pitch">Pitch</label>
+    <input id="pitch" type="range" min="0.5" max="2" step="0.1" value="1">
+    <span id="pitchVal">1</span>
+  </div>
+
+  <textarea id="textinput" rows="6"
+    placeholder="Type sentences here — each line will be spoken as a sentence.">
+  
+  Hello there! Welcome to the voice testing arena of Champak Roy.
+
+This is a calm sentence, meant to test smooth pronunciation and pacing.
+
+The quick brown fox jumps over the lazy dog.
+
+Peter Piper picked a peck of pickled peppers.
+
+How much wood would a woodchuck chuck if a woodchuck could chuck wood?
+
+Artificial Intelligence is not just smart — it's getting conversational!
+
+Flutter, Django, and Firebase walked into a code bar... and started debugging each other.
+
+Sometimes silence speaks louder than words... but not here, because I’m a talking machine.
+
+Acha bhai, ab thoda Hindi English mix karte hain — kya aap sun rahe ho?
+
+That’s it for now! Take a deep breath, stretch your fingers, and write some more amazing code.
+
+  
+  </textarea>
+
+  <div class="buttons">
+    <button id="speakBtn">Speak</button>
+    <button id="pauseBtn">Pause</button>
+    <button id="resumeBtn">Resume</button>
+    <button id="stopBtn">Stop</button>
+  </div>
+
+  <div class="highlightwords" id="currentdiv"></div>
+  <div id="dd"></div>
+
+  <script src="tester.js"></script>
+  <script>
+    // wire UI to functions exposed by tester.js
+    document.getElementById('speakBtn').addEventListener('click', () => {
+      const text = document.getElementById('textinput').value;
+      const rate = parseFloat(document.getElementById('rate').value);
+      const pitch = parseFloat(document.getElementById('pitch').value);
+      showText(text, { rate, pitch });
+    });
+    document.getElementById('pauseBtn').addEventListener('click', () => { pauseSpeech(); });
+    document.getElementById('resumeBtn').addEventListener('click', () => { resumeSpeech(); });
+    document.getElementById('stopBtn').addEventListener('click', () => { stopSpeech(); });
+
+    // show slider values
+    const rateEl = document.getElementById('rate');
+    const pitchEl = document.getElementById('pitch');
+    rateEl.addEventListener('input', () => document.getElementById('rateVal').textContent = rateEl.value);
+    pitchEl.addEventListener('input', () => document.getElementById('pitchVal').textContent = pitchEl.value);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>crx — Teacher & Student Avatars (speaking/listening)</title>
+<style>
+  :root{
+    --bg:#f6fbff; --card:#fff; --accent:#0a66c2; --muted:#5b6b7a;
+  }
+  body{
+    margin:0; font-family:Inter, "Segoe UI", Arial, sans-serif;
+    background:linear-gradient(180deg,var(--bg), #eef6ff 60%);
+    color:#08314b; -webkit-font-smoothing:antialiased;
+  }
+  .crx_page{
+    max-width:980px; margin:28px auto; padding:20px;
+  }
+  h2{ margin:0 0 8px; color:var(--accent); }
+  p.crx_note{ margin:6px 0 18px; color:var(--muted); }
+
+  .crx_layout{
+    display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;
+  }
+
+  /* Avatar card */
+  .crx_card{
+    background:var(--card); border-radius:12px; padding:12px;
+    box-shadow: 0 6px 18px rgba(3,19,40,0.06);
+    width:calc(50% - 9px); min-width:260px;
+    display:flex; gap:12px; align-items:center;
+  }
+  .crx_avatar_zone{
+    width:150px; height:150px; border-radius:12px; position:relative;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,#ffffff,#f7fbff);
+  }
+  .crx_avatar_label{
+    position:absolute; left:10px; top:10px; background:rgba(255,255,255,0.85);
+    padding:6px 8px; border-radius:8px; font-weight:700; font-size:12px;
+    color:#05314b; box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  /* highlight speaking */
+  .crx_speaking {
+    transform:scale(1.06); transition:transform 180ms ease, box-shadow 180ms ease;
+    box-shadow:0 10px 30px rgba(0,102,204,0.16);
+  }
+  .crx_listening { transform:scale(1); }
+
+  /* small text area */
+  .crx_info{ flex:1; min-width:0; }
+  .crx_info p{ margin:0 0 8px 0; }
+  .crx_controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  button.crx_btn{ padding:8px 12px; border-radius:8px; border:0; cursor:pointer; font-weight:700; background:var(--accent); color:#fff; }
+  button.crx_btn.ghost{ background:transparent; color:var(--accent); border:1px solid rgba(10,102,194,0.08); }
+  input.crx_input{ padding:8px 10px; border-radius:8px; border:1px solid #e6eef9; width:100%; box-sizing:border-box; }
+
+  @media (max-width:720px){
+    .crx_card{ width:100%; }
+    .crx_avatar_zone{ width:120px; height:120px; }
+  }
+</style>
+</head>
+<body>
+  <div class="crx_page">
+    <h2>crx — Teacher & Student (speaking / listening)</h2>
+    <p class="crx_note">Two avatar components. Each toggles between speaking and listening SVGs. Use the buttons below to test speech + visuals.</p>
+
+    <div class="crx_layout">
+      <!-- Teacher card -->
+      <div class="crx_card" id="crx_card_teacher">
+        <div class="crx_avatar_zone" id="crx_avatar_zone_teacher" aria-hidden="false">
+          <div class="crx_avatar_label">Teacher</div>
+          <div id="crx_avatar_teacher_inner" aria-live="polite"></div>
+        </div>
+        <div class="crx_info">
+          <p style="font-weight:700">Teacher</p>
+          <p class="crx_small">Shows Speaking and Listening states for teacher.</p>
+
+          <div style="margin-top:10px">
+            <input id="crx_teacher_text" class="crx_input" placeholder="Teacher sentence (example) — Hello students, today we learn arrays." />
+          </div>
+
+          <div class="crx_controls">
+            <button class="crx_btn" id="crx_btn_teacher_speak">Speak</button>
+            <button class="crx_btn ghost" id="crx_btn_teacher_listen">Set Listening</button>
+            <button class="crx_btn ghost" id="crx_btn_teacher_stop">Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student card -->
+      <div class="crx_card" id="crx_card_student">
+        <div class="crx_avatar_zone" id="crx_avatar_zone_student" aria-hidden="false">
+          <div class="crx_avatar_label">Student</div>
+          <div id="crx_avatar_student_inner" aria-live="polite"></div>
+        </div>
+        <div class="crx_info">
+          <p style="font-weight:700">Student</p>
+          <p class="crx_small">Shows Speaking and Listening states for student.</p>
+
+          <div style="margin-top:10px">
+            <input id="crx_student_text" class="crx_input" placeholder="Student sentence (example) — Yes teacher, what is an array?" />
+          </div>
+
+          <div class="crx_controls">
+            <button class="crx_btn" id="crx_btn_student_speak">Speak</button>
+            <button class="crx_btn ghost" id="crx_btn_student_listen">Set Listening</button>
+            <button class="crx_btn ghost" id="crx_btn_student_stop">Stop</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* -------------------------
+   crx helper: wait
+   ------------------------- */
+function crx_wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+/* -------------------------
+   Inline SVG templates
+   Each function returns a string with SVG markup for the desired state.
+   ------------------------- */
+function crx_svg_teacher_speaking(){
+  return `
+  <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teacher speaking">
+    <defs>
+      <linearGradient id="crx_grad_t_s" x1="0" x2="1"><stop offset="0" stop-color="#bfe9ff"/><stop offset="1" stop-color="#8fd7ff"/></linearGradient>
+    </defs>
+    <rect x="6" y="6" width="128" height="128" rx="16" fill="url(#crx_grad_t_s)"/>
+    <g transform="translate(26,26)">
+      <circle cx="26" cy="26" r="18" fill="#fff" stroke="#cdeeff" stroke-width="2"/>
+      <rect x="6" y="52" rx="8" width="40" height="18" fill="#fff" stroke="#cdeeff" stroke-width="2"/>
+      <g stroke="#435b72" stroke-width="1.6" fill="none">
+        <circle cx="14" cy="24" r="4.5"/><circle cx="38" cy="24" r="4.5"/><line x1="18" y1="24" x2="34" y2="24"/>
+      </g>
+    </g>
+    <!-- megaphone -->
+    <g transform="translate(72,36)">
+      <rect x="0" y="6" width="30" height="16" rx="3" fill="#fff" opacity="0.92" stroke="#d8f0ff"/>
+      <polygon points="30,6 44,0 44,28 30,22" fill="#fff" opacity="0.92" stroke="#d8f0ff"/>
+      <g class="crx_wave" fill="none" stroke="#0077dd" stroke-width="2" opacity="0.95">
+        <path d="M46 14 C52 6,60 6,66 14" />
+        <path d="M50 14 C56 9,62 9,68 14" stroke-opacity="0.6"/>
+      </g>
+    </g>
+  </svg>`;
+}
+
+function crx_svg_teacher_listening(){
+  return `
+  <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teacher listening">
+    <defs><linearGradient id="crx_grad_t_l" x1="0" x2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f0fbff"/></linearGradient></defs>
+    <rect x="6" y="6" width="128" height="128" rx="16" fill="url(#crx_grad_t_l)"/>
+    <g transform="translate(26,26)">
+      <circle cx="26" cy="26" r="18" fill="#fff" stroke="#e6f6ff" stroke-width="2"/>
+      <rect x="6" y="52" rx="8" width="40" height="18" fill="#fff" stroke="#e6f6ff" stroke-width="2"/>
+      <!-- ear/listen icon -->
+      <g transform="translate(60,20)" stroke="#4a6a84" stroke-width="1.6" fill="none">
+        <path d="M6 6 C10 2,18 2,24 6 C28 9,28 18,24 22" />
+        <circle cx="6" cy="12" r="1.6" fill="#4a6a84"/>
+      </g>
+    </g>
+    <text x="12" y="124" font-size="9" fill="#576b7f">Listening</text>
+  </svg>`;
+}
+
+function crx_svg_student_speaking(){
+  return `
+  <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Student speaking">
+    <defs><linearGradient id="crx_grad_s_s" x1="0" x2="1"><stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#ffeaa0"/></linearGradient></defs>
+    <rect x="6" y="6" width="128" height="128" rx="16" fill="url(#crx_grad_s_s)"/>
+    <g transform="translate(26,26)">
+      <circle cx="26" cy="26" r="18" fill="#fff" stroke="#fde9b7" stroke-width="2"/>
+      <rect x="6" y="52" rx="7" width="40" height="18" fill="#fff" stroke="#fde9b7" stroke-width="2"/>
+      <path d="M8 22 C18 6,36 6,46 22" fill="#ffd88a" stroke="none"/>
+    </g>
+    <g transform="translate(72,36)">
+      <rect x="0" y="6" width="34" height="18" rx="6" fill="#fff" stroke="#ffd48a"/>
+      <polygon points="12,24 6,30 18,26" fill="#fff" stroke="#ffd48a"/>
+      <g class="crx_wave" fill="none" stroke="#c77400" stroke-width="2"><path d="M42 14 C48 6,56 6,62 14" /></g>
+    </g>
+  </svg>`;
+}
+
+function crx_svg_student_listening(){
+  return `
+  <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Student listening">
+    <defs><linearGradient id="crx_grad_s_l" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff9ec"/></linearGradient></defs>
+    <rect x="6" y="6" width="128" height="128" rx="16" fill="url(#crx_grad_s_l)"/>
+    <g transform="translate(26,26)">
+      <circle cx="26" cy="26" r="18" fill="#fff" stroke="#fff4dc" stroke-width="2"/>
+      <rect x="6" y="52" rx="7" width="40" height="18" fill="#fff" stroke="#fff4dc" stroke-width="2"/>
+      <g transform="translate(64,28)" fill="none" stroke="#b07a00" stroke-width="1.6">
+        <path d="M6 6 C10 2,18 2,24 6 C28 9,28 18,24 22" />
+      </g>
+    </g>
+    <text x="12" y="124" font-size="9" fill="#7a8899">Listening</text>
+  </svg>`;
+}
+
+/* -------------------------
+   draw helpers that swap innerHTML and toggle classes
+   ------------------------- */
+function crx_drawTeacher(state){
+  const inner = document.getElementById("crx_avatar_teacher_inner");
+  const zone = document.getElementById("crx_avatar_zone_teacher");
+  if(!inner || !zone) return;
+  if(state === "speaking"){
+    inner.innerHTML = crx_svg_teacher_speaking();
+    zone.classList.add("crx_speaking");
+    zone.classList.remove("crx_listening");
+  } else {
+    inner.innerHTML = crx_svg_teacher_listening();
+    zone.classList.remove("crx_speaking");
+    zone.classList.add("crx_listening");
+  }
+}
+
+function crx_drawStudent(state){
+  const inner = document.getElementById("crx_avatar_student_inner");
+  const zone = document.getElementById("crx_avatar_zone_student");
+  if(!inner || !zone) return;
+  if(state === "speaking"){
+    inner.innerHTML = crx_svg_student_speaking();
+    zone.classList.add("crx_speaking");
+    zone.classList.remove("crx_listening");
+  } else {
+    inner.innerHTML = crx_svg_student_listening();
+    zone.classList.remove("crx_speaking");
+    zone.classList.add("crx_listening");
+  }
+}
+
+/* -------------------------
+   Speech functions using SpeechSynthesis
+   - toggles avatar visuals for the duration of speaking
+   ------------------------- */
+const crx_synth = window.speechSynthesis;
+let crx_currentUtterance = null;
+
+function crx_findVoiceByName(name){
+  const vs = crx_synth.getVoices() || [];
+  if(!name) return vs[0] || null;
+  const exact = vs.find(v=>v.name===name);
+  if(exact) return exact;
+  return vs.find(v=>v.lang && v.lang.startsWith("en")) || vs[0] || null;
+}
+
+async function crx_teacherSpeak(sentence, voiceName){
+  if(!sentence || !sentence.trim()) return;
+  // stop any previous
+  crx_teacherStop();
+  crx_drawTeacher("speaking");
+  // set student to listening visually
+  crx_drawStudent("listening");
+
+  const utt = new SpeechSynthesisUtterance(sentence);
+  const v = crx_findVoiceByName(voiceName);
+  if(v) utt.voice = v;
+  utt.rate = 1.0; utt.pitch = 1.0; utt.volume = 1.0;
+
+  // optional boundary highlight hooks could be added here
+  utt.onend = () => {
+    crx_drawTeacher("listening");
+    crx_currentUtterance = null;
+  };
+  crx_currentUtterance = utt;
+  crx_synth.speak(utt);
+  return utt;
+}
+
+function crx_teacherStop(){
+  if(crx_currentUtterance){
+    crx_synth.cancel();
+    crx_currentUtterance = null;
+  }
+  crx_drawTeacher("listening");
+}
+
+async function crx_studentSpeak(sentence, voiceName){
+  if(!sentence || !sentence.trim()) return;
+  crx_studentStop();
+  crx_drawStudent("speaking");
+  crx_drawTeacher("listening");
+
+  const utt = new SpeechSynthesisUtterance(sentence);
+  const v = crx_findVoiceByName(voiceName);
+  if(v) utt.voice = v;
+  utt.rate = 1.0; utt.pitch = 1.0; utt.volume = 1.0;
+
+  utt.onend = () => {
+    crx_drawStudent("listening");
+    crx_currentUtterance = null;
+  };
+  crx_currentUtterance = utt;
+  crx_synth.speak(utt);
+  return utt;
+}
+
+function crx_studentStop(){
+  if(crx_currentUtterance){
+    crx_synth.cancel();
+    crx_currentUtterance = null;
+  }
+  crx_drawStudent("listening");
+}
+
+/* -------------------------
+   Wire up demo buttons
+   ------------------------- */
+document.getElementById("crx_btn_teacher_speak").addEventListener("click", ()=>{
+  const text = document.getElementById("crx_teacher_text").value || "Hello students. Today we will learn arrays.";
+  crx_teacherSpeak(text);
+});
+document.getElementById("crx_btn_teacher_stop").addEventListener("click", ()=> crx_teacherStop());
+document.getElementById("crx_btn_teacher_listen").addEventListener("click", ()=> crx_drawTeacher("listening"));
+
+document.getElementById("crx_btn_student_speak").addEventListener("click", ()=>{
+  const text = document.getElementById("crx_student_text").value || "Yes teacher. What is an array?";
+  crx_studentSpeak(text);
+});
+document.getElementById("crx_btn_student_stop").addEventListener("click", ()=> crx_studentStop());
+document.getElementById("crx_btn_student_listen").addEventListener("click", ()=> crx_drawStudent("listening"));
+
+/* initialize: both listening */
+crx_drawTeacher("listening");
+crx_drawStudent("listening");
+
+/* ensure voices are loaded in Chrome (async) */
+if(typeof speechSynthesis !== "undefined"){
+  if(!speechSynthesis.getVoices().length){
+    speechSynthesis.onvoiceschanged = ()=>{/* voices ready */};
+  }
+}
+</script>
+</body>
+</html>

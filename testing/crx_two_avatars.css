@@ -1,0 +1,159 @@
+:root {
+  --bg: #f6fbff;
+  --card: #ffffff;
+  --accent: #0a66c2;
+  --muted: #5b6b7a;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, var(--bg), #eef6ff 60%);
+  color: #08314b;
+  -webkit-font-smoothing: antialiased;
+}
+
+.crx_page {
+  max-width: 980px;
+  margin: 28px auto;
+  padding: 20px;
+}
+
+h2 {
+  margin: 0 0 8px;
+  color: var(--accent);
+}
+
+.crx_note {
+  margin: 6px 0 18px;
+  color: var(--muted);
+}
+
+.crx_layout {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Card */
+.crx_card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(3, 19, 40, 0.06);
+  width: calc(50% - 9px);
+  min-width: 260px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.crx_avatar_zone {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  transition: transform 0.3s ease;
+}
+
+.crx_avatar_label {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #05314b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.crx_speaking {
+  transform: scale(1.06);
+  box-shadow: 0 10px 30px rgba(0, 102, 204, 0.16);
+}
+
+.crx_listening {
+  transform: scale(1);
+}
+
+/* Info panel */
+.crx_info {
+  flex: 1;
+  min-width: 0;
+}
+
+.crx_title {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.crx_input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6eef9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crx_controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.crx_btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+}
+
+.crx_btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(10, 102, 194, 0.08);
+}
+
+@media (max-width: 720px) {
+  .crx_card {
+    width: 100%;
+  }
+
+  .crx_avatar_zone {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* animation for sound waves */
+.crx_wave {
+  transform-origin: center;
+  animation: crx_wave_anim 1100ms infinite;
+}
+
+@keyframes crx_wave_anim {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 0.35;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}

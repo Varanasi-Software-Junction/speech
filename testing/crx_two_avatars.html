@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>crx — Teacher & Student Avatars (speaking/listening)</title>
+  <link rel="stylesheet" href="crx_two_avatars.css" />
+</head>
+<body>
+  <div class="crx_page">
+    <h2>crx — Teacher & Student (speaking / listening)</h2>
+    <p class="crx_note">Each avatar toggles between speaking and listening SVGs. Use buttons to test.</p>
+
+    <div class="crx_layout">
+      <!-- Teacher -->
+      <div class="crx_card" id="crx_card_teacher">
+        <div class="crx_avatar_zone" id="crx_avatar_zone_teacher">
+          <div class="crx_avatar_label">Teacher</div>
+          <div id="crx_avatar_teacher_inner"></div>
+        </div>
+        <div class="crx_info">
+          <p class="crx_title">Teacher</p>
+          <input id="crx_teacher_text" class="crx_input"
+            placeholder="Hello students. Today we will learn arrays." />
+          <div class="crx_controls">
+            <button class="crx_btn" id="crx_btn_teacher_speak">Speak</button>
+            <button class="crx_btn ghost" id="crx_btn_teacher_listen">Listening</button>
+            <button class="crx_btn ghost" id="crx_btn_teacher_stop">Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student -->
+      <div class="crx_card" id="crx_card_student">
+        <div class="crx_avatar_zone" id="crx_avatar_zone_student">
+          <div class="crx_avatar_label">Student</div>
+          <div id="crx_avatar_student_inner"></div>
+        </div>
+        <div class="crx_info">
+          <p class="crx_title">Student</p>
+          <input id="crx_student_text" class="crx_input"
+            placeholder="Yes teacher. What is an array?" />
+          <div class="crx_controls">
+            <button class="crx_btn" id="crx_btn_student_speak">Speak</button>
+            <button class="crx_btn ghost" id="crx_btn_student_listen">Listening</button>
+            <button class="crx_btn ghost" id="crx_btn_student_stop">Stop</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="crx_two_avatars.js"></script>
+</body>
+</html>

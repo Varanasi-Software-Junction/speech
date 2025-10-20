@@ -1,357 +1,94 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Synthetic Speak — Interactive Teaching System</title>
   <style>
-    :root {
-      --bg: #f6f8fb;
-      --accent-blue: #0b78d1;
-      --accent-orange: #f97316;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.08)
+    :root{ --bg:#f6f8fb; --accent-blue:#0b78d1; --accent-orange:#f97316; --shadow:0 6px 18px rgba(0,0,0,0.08) }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif;overflow:hidden}
+
+    header{background:white;box-shadow:0 4px 16px rgba(0,0,0,0.05);padding:20px;text-align:center;position:relative;z-index:100}
+    header h1{margin:0;font-size:28px;color:var(--accent-blue)}
+    header p{margin:6px 0 0;color:#333;font-size:16px;}
+
+    section.importance{padding:20px;background:#fff5ee;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.05);}
+    section.importance h2{color:var(--accent-orange);margin-bottom:10px;}
+    section.importance p{color:#333;font-size:16px;max-width:800px;margin:0 auto;}
+
+    .teaching-area{position:fixed;top:0;left:50%;transform:translateX(-50%);margin:0 auto;padding:20px;width:90%;max-width:900px;background:rgba(255,255,255,0.7);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;gap:20px;z-index:90;}
+
+    .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:180px;z-index:20}
+    .avatars{width:100%;display:flex;justify-content:space-between;}
+    .avatar{width:140px;height:140px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative}
+    .avatar svg{width:110px;height:110px}
+    .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
+    .mouth{transform-origin:50% 50%}
+    .speaking::after{content:'';position:absolute;left:-10px;top:-10px;right:-10px;bottom:-10px;border-radius:50%;animation:pulse 1.4s infinite ease-in-out}
+    .speaking.teacher::after{box-shadow:0 0 20px 6px rgba(11,120,209,0.14)}
+    .speaking.student::after{box-shadow:0 0 20px 6px rgba(249,115,22,0.14)}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+    #playBtn{padding:12px 20px;font-size:16px;font-weight:600;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;position:fixed;bottom:20px;left:20px;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all 0.2s ease}
+    #playBtn:hover{transform:scale(1.05)}
+
+    @media (max-width:600px){
+      #playBtn{bottom:10px;left:10px;font-size:14px;padding:10px 16px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
+      header h1{font-size:22px;}
+      header p{font-size:14px;}
+      section.importance p{font-size:14px;}
+      .teaching-area{padding:12px;width:95%;}
     }
 
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      font-family: Inter, system-ui, Arial, sans-serif;
-      overflow: hidden
-    }
+    .slides-container{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;transition:all .4s ease;width:100%}
+    .slide-column{width:90%;max-width:360px;height:160px;border-radius:12px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:transform 0.5s ease, opacity 0.5s ease;position:relative}
 
-    header {
-      background: white;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-      padding: 20px;
-      text-align: center;
-      position: relative;
-      z-index: 100
-    }
+    .slide-content{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+    .slide-content svg{width:60px;height:60px}
+    .slide-text{font-size:15px;font-weight:500;color:#0b1220;text-align:center;padding:0 10px}
 
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-      color: var(--accent-blue)
-    }
+    .dialogue-box{font-size:18px;font-weight:500;color:#0b1220;background:white;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:12px 16px;margin:0 auto;max-width:68%;min-height:56px;display:flex;align-items:center;justify-content:flex-start;gap:10px}
+    .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
 
-    header p {
-      margin: 6px 0 0;
-      color: #333;
-      font-size: 16px;
-    }
-
-    section.importance {
-      padding: 20px;
-      background: #fff5ee;
-      text-align: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-    }
-
-    section.importance h2 {
-      color: var(--accent-orange);
-      margin-bottom: 10px;
-    }
-
-    section.importance p {
-      color: #333;
-      font-size: 16px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .avatar-wrap {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      width: 180px;
-      z-index: 20
-    }
-
-    #teacherWrap {
-      top: 180px;
-      left: 18px
-    }
-
-    #studentWrap {
-      top: 180px;
-      right: 18px
-    }
-
-    .avatar {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: var(--shadow);
-      position: relative
-    }
-
-    .avatar svg {
-      width: 110px;
-      height: 110px
-    }
-
-    .avatar-label {
-      font-weight: 700;
-      color: #0b1220;
-      margin-top: 6px
-    }
-
-    .mouth {
-      transform-origin: 50% 50%
-    }
-
-    .speaking::after {
-      content: '';
-      position: absolute;
-      left: -10px;
-      top: -10px;
-      right: -10px;
-      bottom: -10px;
-      border-radius: 50%;
-      animation: pulse 1.4s infinite ease-in-out
-    }
-
-    .speaking.teacher::after {
-      box-shadow: 0 0 20px 6px rgba(11, 120, 209, 0.14)
-    }
-
-    .speaking.student::after {
-      box-shadow: 0 0 20px 6px rgba(249, 115, 22, 0.14)
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1)
-      }
-
-      50% {
-        transform: scale(1.06)
-      }
-
-      100% {
-        transform: scale(1)
-      }
-    }
-
-    .bottom-area {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 18px 8%;
-      background: linear-gradient(to top, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
-      box-shadow: 0 -6px 20px rgba(11, 120, 209, 0.03);
-      display: flex;
-      flex-direction: column;
-      align-items: center
-    }
-
-    #playBtn {
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: 600;
-      background: var(--accent-blue);
-      color: #fff;
-      border: 0;
-      border-radius: 8px;
-      cursor: pointer;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 50;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-      transition: all 0.2s ease
-    }
-
-    #playBtn:hover {
-      transform: scale(1.05)
-    }
-
-    @media (max-width:600px) {
-      #playBtn {
-        bottom: 10px;
-        left: 10px;
-        font-size: 14px;
-        padding: 10px 16px;
-        border-radius: 6px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)
-      }
-
-      header h1 {
-        font-size: 22px;
-      }
-
-      header p {
-        font-size: 14px;
-      }
-
-      section.importance p {
-        font-size: 14px;
-      }
-    }
-
-    .slides-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      transition: all .4s ease
-    }
-
-    .slide-column {
-      width: 90%;
-      max-width: 360px;
-      height: 160px;
-      border-radius: 12px;
-      background: #fff;
-      border: 1px solid #eef6ff;
-      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      transition: transform 0.5s ease, opacity 0.5s ease;
-      position: relative
-    }
-
-    .slide-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px
-    }
-
-    .slide-content svg {
-      width: 60px;
-      height: 60px
-    }
-
-    .slide-text {
-      font-size: 15px;
-      font-weight: 500;
-      color: #0b1220;
-      text-align: center;
-      padding: 0 10px
-    }
-
-    .dialogue-box {
-      font-size: 18px;
-      font-weight: 500;
-      color: #0b1220;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
-      padding: 12px 16px;
-      margin: 0 auto;
-      max-width: 68%;
-      min-height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 10px
-    }
-
-    .dialogue-speaker {
-      font-weight: 700;
-      color: var(--accent-blue);
-      min-width: 90px
-    }
-
-    textarea {
-      display: none
-    }
+    textarea{display:none}
   </style>
 </head>
-
 <body>
   <header>
     <h1>Welcome to Synthetic Speak</h1>
-    <p>An interactive teaching system where teachers and students communicate through synthetic speech, visuals, and
-      animated slides.</p>
+    <p>An interactive teaching system where teachers and students communicate through synthetic speech, visuals, and animated slides.</p>
   </header>
 
   <section class="importance">
     <h2>Importance of Synthetic Speak</h2>
-    <p>This system brings a new dimension to online education. It enables interactive sessions with lifelike
-      communication between teachers and students using AI-generated speech and visual cues. By combining voice,
-      animation, and text, learners can better understand concepts, stay engaged, and feel connected — even in virtual
-      classrooms. Teachers can also automate lessons and create immersive experiences for their students.</p>
+    <p>This system brings a new dimension to online education. It enables interactive sessions with lifelike communication between teachers and students using AI-generated speech and visual cues. By combining voice, animation, and text, learners can better understand concepts, stay engaged, and feel connected — even in virtual classrooms. Teachers can also automate lessons and create immersive experiences for their students.</p>
   </section>
 
-  <div id="teacherWrap" class="avatar-wrap">
-    <div id="teacherAvatar" class="avatar">
-      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="tg" x1="0" x2="1">
-            <stop offset="0" stop-color="#0b78d1" />
-            <stop offset="1" stop-color="#60a5fa" />
-          </linearGradient>
-        </defs>
-        <rect width="120" height="120" rx="60" fill="url(#tg)" />
-        <circle cx="60" cy="38" r="18" fill="#fff" />
-        <path d="M30 92c6-18 18-26 30-26s24 8 30 26H30z" fill="#fff" />
-        <g fill="none" stroke="#0b1220" stroke-width="2">
-          <circle cx="52" cy="38" r="5" />
-          <circle cx="68" cy="38" r="5" />
-          <path d="M57 38h6" />
-        </g>
-        <g id="teacherMouth" class="mouth" transform="translate(60,58)">
-          <ellipse cx="0" cy="0" rx="12" ry="3" fill="#0b1220" />
-        </g>
-      </svg>
-    </div>
-    <div class="avatar-label">Teacher</div>
-  </div>
+  <div class="teaching-area">
+    <div class="avatars">
+      <div id="teacherWrap" class="avatar-wrap">
+        <div id="teacherAvatar" class="avatar">
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#tg)"/><circle cx="60" cy="38" r="18" fill="#fff"/><path d="M30 92c6-18 18-26 30-26s24 8 30 26H30z" fill="#fff"/><g fill="none" stroke="#0b1220" stroke-width="2"><circle cx="52" cy="38" r="5"/><circle cx="68" cy="38" r="5"/><path d="M57 38h6"/></g><g id="teacherMouth" class="mouth" transform="translate(60,58)"><ellipse cx="0" cy="0" rx="12" ry="3" fill="#0b1220"/></g></svg>
+        </div><div class="avatar-label">Teacher</div>
+      </div>
 
-  <div id="studentWrap" class="avatar-wrap">
-    <div id="studentAvatar" class="avatar">
-      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="sg" x1="0" x2="1">
-            <stop offset="0" stop-color="#f97316" />
-            <stop offset="1" stop-color="#fb923c" />
-          </linearGradient>
-        </defs>
-        <rect width="120" height="120" rx="60" fill="url(#sg)" />
-        <circle cx="60" cy="38" r="18" fill="#fff" />
-        <path d="M28 92c6-18 18-26 32-26s26 8 34 26H28z" fill="#fff" />
-        <path d="M52 46c2 3 8 3 10 0" stroke="#0b1220" stroke-width="2" fill="none" />
-        <g stroke="#0b1220" stroke-width="2" fill="none">
-          <path d="M36 36c0-8 6-14 24-14s24 6 24 14" />
-          <rect x="30" y="44" width="12" height="16" rx="3" fill="#fff" />
-          <rect x="78" y="44" width="12" height="16" rx="3" fill="#fff" />
-        </g>
-        <g id="studentMouth" class="mouth" transform="translate(60,58)">
-          <ellipse cx="0" cy="0" rx="12" ry="5" fill="#fff" stroke="#0b1220" stroke-width="1.6" />
-        </g>
-      </svg>
+      <div id="studentWrap" class="avatar-wrap">
+        <div id="studentAvatar" class="avatar">
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#sg)"/><circle cx="60" cy="38" r="18" fill="#fff"/><path d="M28 92c6-18 18-26 32-26s26 8 34 26H28z" fill="#fff"/><path d="M52 46c2 3 8 3 10 0" stroke="#0b1220" stroke-width="2" fill="none"/><g stroke="#0b1220" stroke-width="2" fill="none"><path d="M36 36c0-8 6-14 24-14s24 6 24 14"/><rect x="30" y="44" width="12" height="16" rx="3" fill="#fff"/><rect x="78" y="44" width="12" height="16" rx="3" fill="#fff"/></g><g id="studentMouth" class="mouth" transform="translate(60,58)"><ellipse cx="0" cy="0" rx="12" ry="5" fill="#fff" stroke="#0b1220" stroke-width="1.6"/></g></svg>
+        </div><div class="avatar-label">Student</div>
+      </div>
     </div>
-    <div class="avatar-label">Student</div>
-  </div>
-
-  <div class="bottom-area">
-    <button id="playBtn">Play</button>
 
     <div class="slides-container">
       <div class="slide-column" id="slideTop"></div>
       <div class="slide-column" id="slideBottom"></div>
     </div>
+  </div>
 
-    <div class="dialogue-box">
-      <div id="currentSpeaker" class="dialogue-speaker"></div>
-      <div id="currentDialogue">Click Play to start</div>
-    </div>
+  <div class="bottom-area">
+    <button id="playBtn">Play</button>
+
+    <div class="dialogue-box"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
 
     <textarea id="dialoguesText">Teacher: Welcome to today's class.
 Student: Hello sir, I'm ready.
@@ -363,79 +100,78 @@ Student: Sure, please go ahead.</textarea>
 
   <script>
     const synth = window.speechSynthesis;
-    const teacherAvatar = document.getElementById('teacherAvatar');
-    const studentAvatar = document.getElementById('studentAvatar');
-    const teacherMouth = document.getElementById('teacherMouth');
-    const studentMouth = document.getElementById('studentMouth');
-    const currentSpeaker = document.getElementById('currentSpeaker');
-    const currentDialogue = document.getElementById('currentDialogue');
-    const slideTop = document.getElementById('slideTop');
-    const slideBottom = document.getElementById('slideBottom');
+    const teacherAvatar=document.getElementById('teacherAvatar');
+    const studentAvatar=document.getElementById('studentAvatar');
+    const teacherMouth=document.getElementById('teacherMouth');
+    const studentMouth=document.getElementById('studentMouth');
+    const currentSpeaker=document.getElementById('currentSpeaker');
+    const currentDialogue=document.getElementById('currentDialogue');
+    const slideTop=document.getElementById('slideTop');
+    const slideBottom=document.getElementById('slideBottom');
 
-    const state = { teacher: { speaking: false, amp: 0, rAF: 0 }, student: { speaking: false, amp: 0, rAF: 0 } };
+    const state={teacher:{speaking:false,amp:0,rAF:0},student:{speaking:false,amp:0,rAF:0}};
 
-    function animate(role) {
-      const s = state[role];
-      const mouth = role === 'teacher' ? teacherMouth : studentMouth;
-      if (!mouth) return;
-      let last = performance.now();
-      function loop(now) {
-        const dt = Math.min(40, now - last); last = now;
-        s.amp = Math.max(0, s.amp - (dt / 1000) * 0.8);
-        const jitter = (Math.sin(now / 80 + (role === 'teacher' ? 0 : 1.3)) + 1) * 0.05;
-        const amp = Math.min(1.6, s.amp + jitter);
-        const scaleY = 0.18 + (Math.tanh(amp * 1.4)) * (1.1 - 0.18);
-        mouth.style.transform = `translate(60px,58px) scaleY(${scaleY.toFixed(3)})`;
-        if (s.speaking || s.amp > 0.02) { s.rAF = requestAnimationFrame(loop); } else { mouth.style.transform = `translate(60px,58px) scaleY(0.18)`; cancelAnimationFrame(s.rAF); s.rAF = 0; }
+    function animate(role){
+      const s=state[role];
+      const mouth=role==='teacher'?teacherMouth:studentMouth;
+      if(!mouth)return;
+      let last=performance.now();
+      function loop(now){
+        const dt=Math.min(40,now-last);last=now;
+        s.amp=Math.max(0,s.amp-(dt/1000)*0.8);
+        const jitter=(Math.sin(now/80+(role==='teacher'?0:1.3))+1)*0.05;
+        const amp=Math.min(1.6,s.amp+jitter);
+        const scaleY=0.18+(Math.tanh(amp*1.4))*(1.1-0.18);
+        mouth.style.transform=`translate(60px,58px) scaleY(${scaleY.toFixed(3)})`;
+        if(s.speaking||s.amp>0.02){s.rAF=requestAnimationFrame(loop);}else{mouth.style.transform=`translate(60px,58px) scaleY(0.18)`;cancelAnimationFrame(s.rAF);s.rAF=0;}
       }
-      if (!s.rAF) s.rAF = requestAnimationFrame(loop);
+      if(!s.rAF)s.rAF=requestAnimationFrame(loop);
     }
 
-    function startSpeaking(role) { state[role].speaking = true; state[role].amp = 0.9; if (role === 'teacher') { teacherAvatar.classList.add('speaking', 'teacher'); } else { studentAvatar.classList.add('speaking', 'student'); } animate(role); }
-    function stopSpeaking(role) { state[role].speaking = false; if (role === 'teacher') { teacherAvatar.classList.remove('speaking', 'teacher'); } else { studentAvatar.classList.remove('speaking', 'student'); } }
+    function startSpeaking(role){state[role].speaking=true;state[role].amp=0.9;if(role==='teacher'){teacherAvatar.classList.add('speaking','teacher');}else{studentAvatar.classList.add('speaking','student');}animate(role);}
+    function stopSpeaking(role){state[role].speaking=false;if(role==='teacher'){teacherAvatar.classList.remove('speaking','teacher');}else{studentAvatar.classList.remove('speaking','student');}}
 
-    function parseDialogues() { return document.getElementById('dialoguesText').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const m = l.match(/^(Teacher|Student):\s*(.*)/i); if (m) return { role: m[1].toLowerCase(), text: m[2] }; return { role: 'teacher', text: l }; }); }
+    function parseDialogues(){return document.getElementById('dialoguesText').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(Teacher|Student):\s*(.*)/i);if(m)return{role:m[1].toLowerCase(),text:m[2]};return{role:'teacher',text:l};});}
 
-    function createDummySlideContent(line) {
-      const color = line.role === 'teacher' ? '#0b78d1' : '#f97316';
-      const icon = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='45' fill='${color}'/><text x='50%' y='54%' text-anchor='middle' font-size='30' fill='white'>${line.role === 'teacher' ? 'T' : 'S'}</text></svg>`;
-      const div = document.createElement('div');
-      div.className = 'slide-content';
-      div.innerHTML = `${icon}<div class='slide-text'>${line.text}</div>`;
+    function createDummySlideContent(line){
+      const color=line.role==='teacher'?'#0b78d1':'#f97316';
+      const icon=`<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='45' fill='${color}'/><text x='50%' y='54%' text-anchor='middle' font-size='30' fill='white'>${line.role==='teacher'?'T':'S'}</text></svg>`;
+      const div=document.createElement('div');
+      div.className='slide-content';
+      div.innerHTML=`${icon}<div class='slide-text'>${line.text}</div>`;
       return div;
     }
 
-    function showSlide(line) {
-      const newSlide = createDummySlideContent(line);
-      slideTop.style.opacity = '0.7';
-      slideTop.style.transform = 'translateY(-10px)';
-      setTimeout(() => {
-        slideTop.innerHTML = slideBottom.innerHTML;
-        slideTop.style.opacity = '1';
-        slideTop.style.transform = 'translateY(0)';
-        slideBottom.innerHTML = '';
+    function showSlide(line){
+      const newSlide=createDummySlideContent(line);
+      slideTop.style.opacity='0.7';
+      slideTop.style.transform='translateY(-10px)';
+      setTimeout(()=>{
+        slideTop.innerHTML=slideBottom.innerHTML;
+        slideTop.style.opacity='1';
+        slideTop.style.transform='translateY(0)';
+        slideBottom.innerHTML='';
         slideBottom.appendChild(newSlide);
-      }, 200);
+      },200);
     }
 
-    function speakLine(line) {
-      return new Promise(res => {
-        const u = new SpeechSynthesisUtterance(line.text);
-        u.onstart = () => { startSpeaking(line.role); currentSpeaker.textContent = line.role === 'teacher' ? 'Teacher:' : 'Student:'; currentDialogue.textContent = line.text; showSlide(line); };
-        u.onend = () => { stopSpeaking(line.role); res(); };
+    function speakLine(line){
+      return new Promise(res=>{
+        const u=new SpeechSynthesisUtterance(line.text);
+        u.onstart=()=>{startSpeaking(line.role);currentSpeaker.textContent=line.role==='teacher'?'Teacher:':'Student:';currentDialogue.textContent=line.text;showSlide(line);};
+        u.onend=()=>{stopSpeaking(line.role);res();};
         synth.speak(u);
       });
     }
 
-    async function playAll() {
-      const lines = parseDialogues();
-      slideTop.innerHTML = ''; slideBottom.innerHTML = '';
-      for (const l of lines) { await speakLine(l); await new Promise(r => setTimeout(r, 200)); }
-      currentSpeaker.textContent = ''; currentDialogue.textContent = 'All dialogues finished.';
+    async function playAll(){
+      const lines=parseDialogues();
+      slideTop.innerHTML='';slideBottom.innerHTML='';
+      for(const l of lines){await speakLine(l);await new Promise(r=>setTimeout(r,200));}
+      currentSpeaker.textContent='';currentDialogue.textContent='All dialogues finished.';
     }
 
-    document.getElementById('playBtn').addEventListener('click', () => { if (synth.speaking) synth.cancel(); playAll(); });
+    document.getElementById('playBtn').addEventListener('click',()=>{if(synth.speaking)synth.cancel();playAll();});
   </script>
 </body>
-
 </html>

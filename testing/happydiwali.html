@@ -1,237 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Basic page setup and metadata -->
+  <meta charset="UTF-8" />
+  <!-- Makes the page responsive on phones -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Happy Diwali</title>
+
   <style>
+    /* ====== GLOBAL PAGE STYLES ====== */
     body {
-      margin: 0;
-      height: 100vh;
+      margin: 0;                    /* Remove default browser margins */
+      height: 100vh;                /* Full viewport height */
+      /* A warm gradient background (center -> edges) */
       background: radial-gradient(circle at center, #ffcc80, #ff7043, #6d4c41);
-      overflow: hidden;
+      overflow: hidden;             /* Hide anything that goes outside the screen */
       font-family: 'Poppins', sans-serif;
-      color: white;
-      text-align: center;
+      color: white;                 /* Default text color */
+      text-align: center;           /* Center the main heading */
     }
 
+    /* Big glowing heading text */
     h1 {
       margin-top: 40px;
       font-size: 3em;
       color: gold;
+      /* Glow effect using multiple text shadows */
       text-shadow: 0 0 20px orange, 0 0 40px red;
-      animation: glow 2s infinite alternate;
+      animation: glow 2s infinite alternate; /* Run the glow animation forever */
     }
 
+    /* Animation that makes the text glow softly */
     @keyframes glow {
       from { text-shadow: 0 0 10px orange; }
-      to { text-shadow: 0 0 30px yellow, 0 0 60px red; }
+      to   { text-shadow: 0 0 30px yellow, 0 0 60px red; }
     }
 
+    /* ====== DIYAS (earthen lamps) ON THE GROUND ====== */
     .lamp {
-      position: absolute;
-      bottom: 0;
-      width: 80px;
-      height: 60px;
-      background: #6d4c41;
-      border-radius: 0 0 50% 50%;
-      box-shadow: 0 0 10px #3e2723 inset;
+      position: absolute;              /* We will place them at exact positions */
+      bottom: 0;                       /* Sit on the bottom edge */
+      width: 80px; height: 60px;       /* Bowl size */
+      background: #6d4c41;             /* Clay color */
+      border-radius: 0 0 50% 50%;      /* Rounded bottom bowl shape */
+      box-shadow: 0 0 10px #3e2723 inset; /* Inner shadow for depth */
       overflow: visible;
-      animation: flicker 1s infinite alternate;
+      animation: flicker 1s infinite alternate; /* Slight brightness change */
     }
 
+    /* Flame on top of each diya */
     .flame {
       position: absolute;
-      top: -25px;
-      left: 35px;
-      width: 10px;
-      height: 25px;
-      background: radial-gradient(orange, yellow, white);
+      top: -25px; left: 35px;          /* Position above the bowl */
+      width: 10px; height: 25px;       /* Flame size */
+      background: radial-gradient(orange, yellow, white); /* Flame colors */
       border-radius: 50%;
-      animation: flame 0.6s infinite alternate;
+      animation: flame 0.6s infinite alternate; /* Flame movement */
     }
 
+    /* Flame squeezes and stretches vertically + small opacity change */
     @keyframes flame {
-      from { transform: scaleY(1); opacity: 0.9; }
-      to { transform: scaleY(1.2); opacity: 1; }
+      from { transform: scaleY(1);   opacity: 0.9; }
+      to   { transform: scaleY(1.2); opacity: 1;   }
     }
 
+    /* Lamp brightness flicker */
     @keyframes flicker {
       from { filter: brightness(1); }
-      to { filter: brightness(1.3); }
+      to   { filter: brightness(1.3); }
     }
 
+    /* Place five lamps horizontally along the bottom */
     .lamp:nth-child(1) { left: 10%; }
     .lamp:nth-child(2) { left: 30%; }
     .lamp:nth-child(3) { left: 50%; }
     .lamp:nth-child(4) { left: 70%; }
     .lamp:nth-child(5) { left: 90%; }
 
+    /* ====== ROCKETS & SPARK TRAILS ====== */
     .rocket {
-      position: absolute;
-      width: 6px;
-      height: 30px;
-      background: linear-gradient(to top, red, yellow);
+      position: absolute;                 /* We animate bottom property to fly up */
+      width: 6px; height: 30px;           /* Thin rocket body */
+      background: linear-gradient(to top, red, yellow); /* Rocket body gradient */
       border-radius: 2px;
-      animation: fireRocket 5s linear infinite;
+      animation: fireRocket 5s linear infinite; /* Keep launching */
     }
 
+    /* Little fiery ball behind the rocket tail */
     .rocket::after {
       content: '';
       position: absolute;
-      bottom: -10px;
-      left: -4px;
-      width: 14px;
-      height: 14px;
+      bottom: -10px; left: -4px;
+      width: 14px; height: 14px;
       background: radial-gradient(orange, red);
       border-radius: 50%;
-      animation: spark 0.2s infinite alternate;
+      animation: spark 0.2s infinite alternate; /* Tail spark flicker */
     }
 
+    /* Vertical trail line under the rocket (separate element) */
     .trail {
       position: absolute;
-      width: 2px;
-      height: 50px;
+      width: 2px; height: 50px;
       background: linear-gradient(to bottom, rgba(255,255,0,0.8), rgba(255,0,0,0));
       opacity: 0.8;
-      animation: trailMove 5s linear infinite;
+      animation: trailMove 5s linear infinite; /* Follows rocket timing */
     }
 
+    /* Rocket flies from bottom to top, also drifts a bit sideways */
     @keyframes fireRocket {
-      0% { bottom: 0; opacity: 1; transform: translateX(0); }
-      70% { opacity: 1; }
+      0%   { bottom: 0;     opacity: 1; transform: translateX(0);    }
+      70%  {                 opacity: 1; }
       100% { bottom: 100vh; opacity: 0; transform: translateX(50px); }
     }
 
+    /* Trail moves upwards and fades */
     @keyframes trailMove {
-      0% { bottom: 0; opacity: 1; }
+      0%   { bottom: 0;     opacity: 1; }
       100% { bottom: 100vh; opacity: 0; }
     }
 
+    /* Tail spark pulsing */
     @keyframes spark {
-      from { opacity: 0.7; transform: scale(1); }
-      to { opacity: 1; transform: scale(1.2); }
+      from { opacity: 0.7; transform: scale(1);   }
+      to   { opacity: 1;   transform: scale(1.2); }
     }
 
+    /* ====== CHILDREN FIGURES AT THE BOTTOM ====== */
     .children {
       position: absolute;
       bottom: 10px;
       width: 100%;
-      display: flex;
+      display: flex;                 /* Place children side by side */
       justify-content: center;
       gap: 50px;
-      animation: bounce 2s infinite ease-in-out;
-      z-index: 3;
+      animation: bounce 2s infinite ease-in-out; /* Gentle bounce */
+      z-index: 3;                    /* In front of sparkles/diyas */
     }
 
+    /* Simple rounded body as a cartoon shape */
     .child {
-      width: 80px;
-      height: 140px;
+      width: 80px; height: 140px;
       background: linear-gradient(to bottom, #ffb74d, #ff8a65);
-      border-radius: 40px;
+      border-radius: 40px;           /* Rounded body */
       position: relative;
     }
 
+    /* Circle head above the body */
     .child::before {
       content: '';
       position: absolute;
-      top: -30px;
-      left: 20px;
-      width: 40px;
-      height: 40px;
+      top: -30px; left: 20px;
+      width: 40px; height: 40px;
       background: #ffe0b2;
       border-radius: 50%;
     }
 
+    /* Up-down bounce to look lively */
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      50%      { transform: translateY(-10px); }
     }
 
+    /* ====== SKY CRACKERS (DOTS THAT EXPAND) ====== */
     .cracker {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: yellow;
+      position: absolute;           /* Placed around the sky via inline styles */
+      width: 6px; height: 6px;
+      background: yellow;           /* Base color (overridden inline) */
       border-radius: 50%;
       opacity: 0;
-      animation: explode 2s infinite;
+      animation: explode 2s infinite; /* Grow + fade */
     }
 
+    /* Explosion animation: small -> big + fade out */
     @keyframes explode {
-      0% { transform: scale(0); opacity: 1; }
-      50% { transform: scale(2); opacity: 1; }
+      0%   { transform: scale(0); opacity: 1; }
+      50%  { transform: scale(2); opacity: 1; }
       100% { transform: scale(3); opacity: 0; }
     }
 
+    /* ====== FIREWORK BURSTS (GLOWING DOTS) ====== */
     .burst {
       position: absolute;
-      width: 10px;
-      height: 10px;
+      width: 10px; height: 10px;
       border-radius: 50%;
       opacity: 0;
       animation: burst 3s infinite ease-out;
     }
 
+    /* Burst grows bigger and fades */
     @keyframes burst {
-      0% { transform: scale(0); opacity: 1; }
-      50% { transform: scale(1.5); opacity: 1; }
+      0%   { transform: scale(0);   opacity: 1; }
+      50%  { transform: scale(1.5); opacity: 1; }
       100% { transform: scale(2.5); opacity: 0; }
     }
 
+    /* ====== COUNTDOWN BANNER (SHOWN AT TOP) ====== */
     #countdown {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      position: fixed;                     /* Stay at same place even if page scrolls */
+      top: 20px; left: 50%;
+      transform: translateX(-50%);         /* Center horizontally */
       background: rgba(0,0,0,0.5);
       padding: 10px 20px;
       border-radius: 20px;
       font-size: 1.5em;
       color: gold;
       box-shadow: 0 0 10px orange;
-      animation: fade 1s infinite alternate;
+      animation: fade 1s infinite alternate; /* Gentle blinking */
       z-index: 5;
-      display: none;
+      display: none;                         /* Hidden until we start countdown */
     }
 
+    /* ====== WISHES TEXT (APPEARS AFTER COUNTDOWN) ====== */
     #wishes {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);     /* Center on screen */
       font-size: 2em;
       color: gold;
-      text-shadow: 0 0 15px orange, 0 0 30px red;
+      text-shadow: 0 0 15px orange, 0 0 30px red; /* Glow effect */
       opacity: 0;
-      animation: appear 3s forwards;
+      animation: appear 3s forwards;        /* Fade+scale in and stay visible */
       z-index: 4;
-      display: none;
+      display: none;                         /* Shown from JS */
     }
 
+    /* Wishes appear animation */
     @keyframes appear {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
     }
 
+    /* Simple fade (used by countdown banner) */
     @keyframes fade {
-      from { opacity: 1; }
-      to { opacity: 0.6; }
+      from { opacity: 1;   }
+      to   { opacity: 0.6; }
     }
 
-    /* Floating mini diyas */
+    /* ====== FLOATING MINI DIYAS (DECORATIONS THAT RISE) ====== */
     .mini-diya {
       position: absolute;
-      bottom: -60px;
-      width: 40px;
-      height: 28px;
+      bottom: -60px;                         /* Start below the screen */
+      width: 40px; height: 28px;
       border-radius: 0 0 50% 50%;
       background: #7a523e;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3) inset, 0 0 12px rgba(255,140,0,0.3);
       z-index: 2;
+      /* floatUp: moves up; sway: slight left-right wiggle */
       animation: floatUp 12s linear infinite, sway 2s ease-in-out infinite alternate;
     }
+    /* Little flame for the mini diya */
     .mini-diya::before {
       content: '';
       position: absolute;
@@ -243,41 +261,46 @@
       animation: tinyFlame 0.7s infinite alternate;
       box-shadow: 0 0 10px rgba(255,165,0,0.8);
     }
+    /* Rise upwards and fade out at the top */
     @keyframes floatUp {
-      0% { transform: translateY(0); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
+      0%   { transform: translateY(0);     opacity: 0; }
+      10%  {                                 opacity: 1; }
+      90%  {                                 opacity: 1; }
       100% { transform: translateY(-110vh); opacity: 0; }
     }
-    @keyframes sway { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
-    @keyframes tinyFlame { from { transform: scaleY(1); } to { transform: scaleY(1.2); } }
+    /* Gentle side-to-side movement */
+    @keyframes sway      { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+    /* Flame wiggle */
+    @keyframes tinyFlame { from { transform: scaleY(1); }       to { transform: scaleY(1.2); }     }
 
-    /* Falling sparkles */
+    /* ====== FALLING SPARKLES (BACKGROUND CONFETTI) ====== */
     .sparkle {
-      position: fixed;
-      top: -10px;
-      width: 3px;
-      height: 3px;
+      position: fixed;             /* Fall over the whole screen */
+      top: -10px;                  /* Start slightly above top */
+      width: 3px; height: 3px;     /* Tiny dots */
       border-radius: 50%;
       background: rgba(255,255,255,0.9);
       box-shadow: 0 0 8px rgba(255,255,200,0.8);
       z-index: 1;
+      /* Two animations at once: fall + twinkle */
       animation-name: fall, twinkle;
       animation-timing-function: linear, ease-in-out;
       animation-iteration-count: infinite, infinite;
     }
-    @keyframes fall { to { transform: translateY(110vh); } }
+    /* Move straight down past the screen */
+    @keyframes fall    { to { transform: translateY(110vh); } }
+    /* Brightness flicker while falling */
     @keyframes twinkle { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-    /* Autoplay overlay */
+    /* ====== OVERLAY TO ASK FOR USER CLICK (FOR AUTOPLAY RULES) ====== */
     #overlay {
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: flex;
+      inset: 0;                          /* Top/right/bottom/left: 0 (cover full screen) */
+      background: rgba(0,0,0,0.55);      /* Dark transparent layer */
+      display: flex;                      /* Center content with flexbox */
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 9999;                      /* Above everything */
     }
     #overlay button {
       background: gold;
@@ -285,117 +308,150 @@
       border: none;
       padding: 14px 22px;
       font-size: 1.1rem;
-      border-radius: 999px;
+      border-radius: 999px;              /* Pill-shaped button */
       box-shadow: 0 8px 30px rgba(255,165,0,0.5);
       cursor: pointer;
     }
-    #overlay p { color: #fff; font-size: .95rem; margin-top: 10px; text-align:center; }
+    #overlay p {
+      color: #fff;
+      font-size: .95rem;
+      margin-top: 10px;
+      text-align:center;
+    }
   </style>
 </head>
 <body>
+  <!-- Main festival heading -->
   <h1>🪔 Happy Diwali 🪔</h1>
+
+  <!-- Countdown text (hidden initially; shown from JS) -->
   <div id="countdown">Music starts in 5...</div>
+
+  <!-- Wishes message (shown after countdown) -->
   <div id="wishes">✨ May your life be filled with light, love, and joy! ✨</div>
 
-  <!-- Ground diyas -->
+  <!-- ====== Ground diyas (five lamps along the bottom) ====== -->
   <div class="lamp"><div class="flame"></div></div>
   <div class="lamp"><div class="flame"></div></div>
   <div class="lamp"><div class="flame"></div></div>
   <div class="lamp"><div class="flame"></div></div>
   <div class="lamp"><div class="flame"></div></div>
 
+  <!-- Simple child shapes at the bottom to give a festive scene -->
   <div class="children">
     <div class="child"></div>
     <div class="child"></div>
   </div>
 
-  <!-- Rockets with trails -->
-  <div class="trail" style="left: 20%; animation-delay: 1s;"></div>
-  <div class="trail" style="left: 60%; animation-delay: 2s;"></div>
-  <div class="trail" style="left: 80%; animation-delay: 3s;"></div>
+  <!-- ====== Rockets and their vertical trails (positions and delays set inline) ====== -->
+  <div class="trail"  style="left: 20%; animation-delay: 1s;"></div>
+  <div class="trail"  style="left: 60%; animation-delay: 2s;"></div>
+  <div class="trail"  style="left: 80%; animation-delay: 3s;"></div>
 
   <div class="rocket" style="left: 20%; animation-delay: 1s;"></div>
   <div class="rocket" style="left: 60%; animation-delay: 2s;"></div>
   <div class="rocket" style="left: 80%; animation-delay: 3s;"></div>
 
-  <!-- Crackers & bursts -->
-  <div class="cracker" style="top: 20%; left: 30%; animation-delay: 1s; background: red;"></div>
+  <!-- ====== Small cracker dots and larger bursts sprinkled in the sky ====== -->
+  <div class="cracker" style="top: 20%; left: 30%; animation-delay: 1s;   background: red;"></div>
   <div class="cracker" style="top: 25%; left: 50%; animation-delay: 1.5s; background: blue;"></div>
-  <div class="cracker" style="top: 15%; left: 70%; animation-delay: 2s; background: gold;"></div>
+  <div class="cracker" style="top: 15%; left: 70%; animation-delay: 2s;   background: gold;"></div>
   <div class="cracker" style="top: 30%; left: 40%; animation-delay: 2.5s; background: lime;"></div>
-  <div class="cracker" style="top: 18%; left: 60%; animation-delay: 3s; background: pink;"></div>
+  <div class="cracker" style="top: 18%; left: 60%; animation-delay: 3s;   background: pink;"></div>
 
-  <div class="burst" style="top: 10%; left: 40%; background: gold; animation-delay: 1.5s;"></div>
-  <div class="burst" style="top: 12%; left: 65%; background: orange; animation-delay: 2s;"></div>
-  <div class="burst" style="top: 8%; left: 55%; background: cyan; animation-delay: 2.5s;"></div>
+  <div class="burst" style="top: 10%; left: 40%; background: gold;    animation-delay: 1.5s;"></div>
+  <div class="burst" style="top: 12%; left: 65%; background: orange;  animation-delay: 2s;"></div>
+  <div class="burst" style="top:  8%; left: 55%; background: cyan;    animation-delay: 2.5s;"></div>
   <div class="burst" style="top: 14%; left: 75%; background: magenta; animation-delay: 3s;"></div>
 
-  <!-- Audio -->
-<!-- Intro music: swap to FreePD (public domain, direct MP3) -->
-<audio id="introMusic" preload="auto" crossorigin="anonymous">
-  <source src="https://freepd.com/music/Adding%20the%20Sun.mp3" type="audio/mpeg">
-  <!-- Fallback option -->
-  <source src="https://freepd.com/music/Improved%20Ice%20Cream%20Truck.mp3" type="audio/mpeg">
-</audio>
+  <!-- ====== AUDIO ======
+       We use hotlink-friendly, public-domain sources to avoid 403 errors.
+       preload="auto" helps the browser buffer audio early.
+       crossorigin="anonymous" keeps CORS happy on some hosts. -->
+  <!-- Intro music -->
+  <audio id="introMusic" preload="auto" crossorigin="anonymous">
+    <source src="https://freepd.com/music/Adding%20the%20Sun.mp3" type="audio/mpeg" />
+    <!-- Fallback track if the first fails -->
+    <source src="https://freepd.com/music/Improved%20Ice%20Cream%20Truck.mp3" type="audio/mpeg" />
+  </audio>
 
-<!-- Fireworks SFX: swap to Wikimedia Commons (public domain, hotlink-friendly) -->
-<audio id="fireworks" loop preload="auto" crossorigin="anonymous">
-  <source src="https://upload.wikimedia.org/wikipedia/commons/7/71/Fireworks.ogg" type="audio/ogg">
-</audio>
+  <!-- Looping fireworks sound -->
+  <audio id="fireworks" loop preload="auto" crossorigin="anonymous">
+    <source src="https://upload.wikimedia.org/wikipedia/commons/7/71/Fireworks.ogg" type="audio/ogg" />
+  </audio>
 
-  <!-- Autoplay overlay (user gesture requirement) -->
+  <!-- ====== AUTOPLAY OVERLAY ======
+       Modern browsers block audio until the user interacts.
+       This full-screen overlay asks for a tap/click/keypress first. -->
   <div id="overlay">
     <div>
       <button id="startBtn">Tap to Start Celebration 🎉</button>
-      <p>(Audio will begin after a 5‑second countdown)</p>
+      <p>(Audio will begin after a 5-second countdown)</p>
     </div>
   </div>
 
   <script>
+    /* ------- Grab references to elements we need ------- */
     const introMusic = document.getElementById('introMusic');
-    const fireworks = document.getElementById('fireworks');
-    const countdown = document.getElementById('countdown');
-    const wishes = document.getElementById('wishes');
-    const overlay = document.getElementById('overlay');
-    const startBtn = document.getElementById('startBtn');
+    const fireworks  = document.getElementById('fireworks');
+    const countdown  = document.getElementById('countdown');
+    const wishes     = document.getElementById('wishes');
+    const overlay    = document.getElementById('overlay');
+    const startBtn   = document.getElementById('startBtn');
 
-    // Warm-up (muted) so buffering is ready; then we'll unmute after user gesture
+    /* ------- Warm up audio (muted) -------
+       Some browsers allow playing muted without user action.
+       We briefly play & pause muted so files buffer and start faster later. */
     try {
       introMusic.muted = true;
       fireworks.muted = true;
-      introMusic.play().catch(()=>{});
+      introMusic.play().catch(()=>{});  // Ignore errors if blocked
       fireworks.play().catch(()=>{});
       introMusic.pause();
       fireworks.pause();
-    } catch(e) {}
+    } catch(e) { /* Safe to ignore */ }
 
+    /* ------- Start the show after a user gesture -------
+       1) Hide overlay, show countdown.
+       2) Count 5..4..3..2..1.
+       3) Show wishes, unmute, and play both audio tracks.
+       4) If playback fails, re-show overlay so user can retry. */
     function startCountdownAndPlay(){
-      overlay.style.display = 'none';
+      overlay.style.display = 'none';   // Hide the overlay
       countdown.style.display = 'block';
-      wishes.style.display = 'none';
+      wishes.style.display    = 'none';
 
       let timeLeft = 5;
       countdown.textContent = `Music starts in ${timeLeft}...`;
+
       const timer = setInterval(() => {
         timeLeft--;
         countdown.textContent = `Music starts in ${timeLeft}...`;
+
         if (timeLeft === 0) {
           clearInterval(timer);
-          countdown.remove();
+          countdown.remove();           // Remove banner
           wishes.style.display = 'block';
+
+          // Unmute and try to play both tracks together
           introMusic.muted = false;
-          fireworks.muted = false;
+          fireworks.muted  = false;
+
           Promise.allSettled([introMusic.play(), fireworks.play()]).then(results => {
+            // If any play() was rejected, show overlay again for another try
             const failed = results.some(r => r.status === 'rejected');
             if (failed) {
               overlay.style.display = 'flex';
             }
           });
         }
-      }, 1000);
+      }, 1000); // Run every 1 second
     }
 
+    // Start when user clicks the button
     startBtn.addEventListener('click', startCountdownAndPlay);
+
+    // Also start on ANY key/tap/click (extra safety if Blogger/template affects the button)
     ['keydown','pointerdown','touchstart'].forEach(evt => {
       document.addEventListener(evt, function once(){
         document.removeEventListener(evt, once, {capture:false});
@@ -403,16 +459,20 @@
       }, {passive:true});
     });
 
-    // Sparkles & floating diyas
+    /* ------- Decorative particles: sparkles & floating diyas -------
+       These functions dynamically create DOM elements and style them randomly
+       to make the scene feel lively and non-repetitive. */
     const createSparkles = (count = 70) => {
       for (let i = 0; i < count; i++) {
         const s = document.createElement('div');
         s.className = 'sparkle';
-        const left = Math.random() * 100;
-        const delay = Math.random() * 5;
-        const duration = 6 + Math.random() * 6;
+        const left     = Math.random() * 100;        // 0..100 vw
+        const delay    = Math.random() * 5;          // 0..5 s
+        const duration = 6 + Math.random() * 6;      // 6..12 s
         s.style.left = left + 'vw';
+        // Two animations: fall (duration varies), twinkle (1.5s)
         s.style.animationDuration = duration + 's, 1.5s';
+        // Start times for the two animations
         s.style.animationDelay = delay + 's, ' + (delay/2).toFixed(2) + 's';
         document.body.appendChild(s);
       }
@@ -422,16 +482,17 @@
       for (let i = 0; i < count; i++) {
         const d = document.createElement('div');
         d.className = 'mini-diya';
-        const left = 5 + Math.random() * 90;
-        const delay = Math.random() * 8;
-        const duration = 10 + Math.random() * 8;
+        const left     = 5 + Math.random() * 90;     // 5..95 vw
+        const delay    = Math.random() * 8;          // 0..8 s
+        const duration = 10 + Math.random() * 8;     // 10..18 s
         d.style.left = left + 'vw';
-        d.style.animationDelay = delay + 's, ' + (Math.random()*1.5).toFixed(2) + 's';
+        d.style.animationDelay    = delay + 's, ' + (Math.random()*1.5).toFixed(2) + 's';
         d.style.animationDuration = duration + 's, 2s';
         document.body.appendChild(d);
       }
     };
 
+    // Create the decorations right away
     createSparkles(70);
     createMiniDiyas(12);
   </script>

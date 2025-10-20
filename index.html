@@ -1,206 +1,159 @@
-
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Synthetic Speak — Interactive Teaching System</title>
-  <style>
-    :root{ --bg:#f6f8fb; --accent-blue:#0b78d1; --accent-orange:#f97316; --shadow:0 6px 18px rgba(0,0,0,0.08) }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Synthetic Speak — Dashboard with Drawer and Avatars</title>
+<style>
+  :root{--bg:#f6f8fb;--blue:#0b78d1;--orange:#f97316;--muted:#64748b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif;color:#0b1220;display:flex;flex-direction:column;min-height:100vh}
 
-    .teaching-area{position:fixed;top:16px;left:50%;transform:translateX(-50%);margin:0 auto;padding:18px;width:92%;max-width:920px;background:rgba(255,255,255,0.95);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:999;border:2px solid var(--accent-blue);transition:all 0.35s ease}
+  header{background:#fff;padding:12px 18px;box-shadow:0 4px 12px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{font-weight:800;font-size:18px;color:var(--blue)}
+  .icon-btn{background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer}
 
-    .teaching-area.collapsed{left:auto;right:16px;top:12px;transform:none;width:240px;padding:10px;border-radius:10px;opacity:1}
-    .teaching-area.collapsed .slides-container,
-    .teaching-area.collapsed .dialogue-box{display:none}
-    .teaching-area.collapsed .avatars{justify-content:flex-end}
-    .teaching-area.collapsed .avatar-label{display:none}
+  .container{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;flex:1;align-items:start}
+  .dashboard{display:grid;grid-template-columns:260px 1fr 260px;gap:14px}
 
-    .toggle-btn{position:absolute;top:8px;right:10px;padding:6px 10px;background:var(--accent-blue);color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.18);z-index:1000}
+  aside{background:white;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);padding:14px;overflow:auto}
+  .btn{padding:10px;border:none;border-radius:8px;cursor:pointer;font-weight:700;color:#fff}
+  .primary{background:var(--blue)}
+  .warn{background:#ffb020}
+  .success{background:#059669}
+  .danger{background:#ef4444}
 
-    #playBtn{padding:10px 16px;font-size:15px;font-weight:700;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(11,120,209,0.16)}
+  .voice-select{width:100%;padding:8px;border:1px solid #e6eefc;border-radius:8px}
+  .rate{width:100%}
 
-    .avatars{width:100%;display:flex;justify-content:space-between;align-items:center}
-    .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:140px}
-    .avatar-svg{width:110px;height:110px;border-radius:50%;display:block}
-    .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
-    /* animate mouth when avatar element has class 'speaking' */
-    .avatar.speaking .mouth{animation:mouthMovement 220ms infinite}
+  .avatars{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .avatar{width:110px;height:110px;border-radius:50%;overflow:hidden}
 
-    @keyframes mouthMovement{0%{transform:scaleY(0.7);}50%{transform:scaleY(1.25);}100%{transform:scaleY(0.8);}}
+  .main-content{display:flex;flex-direction:column;gap:14px}
+  .slide{background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);display:flex;gap:12px;align-items:center}
+  .thumb{width:120px;height:80px;border-radius:8px;background:#e2e8f0}
+  .slide-text{font-weight:700}
+  .dialogue-box{background:#fff;border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:8px}
+  .speaker{font-weight:800;color:var(--blue)}
 
-    .slides-container{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-    .slide-column{width:92%;max-width:420px;min-height:100px;border-radius:10px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:flex-start;overflow:hidden;padding:12px;gap:12px;transition:background 0.3s ease,opacity 0.3s ease}
-    .slide-column.teacher{background:linear-gradient(90deg, rgba(11,120,209,0.12), rgba(255,255,255,0));border-color:rgba(11,120,209,0.3)}
-    .slide-column.student{background:linear-gradient(90deg, rgba(249,115,22,0.12), rgba(255,255,255,0));border-color:rgba(249,115,22,0.3)}
-    .slide-thumb{width:84px;height:56px;border-radius:8px;flex:0 0 auto;overflow:hidden;display:flex;align-items:center;justify-content:center}
-    .slide-thumb svg{width:84px;height:56px;display:block}
-    .slide-text{padding:0 6px;font-weight:600;color:#0b1220;text-align:left;flex:1}
+  footer{background:#fff;box-shadow:0 -4px 12px rgba(0,0,0,0.06);padding:10px;display:flex;align-items:center;justify-content:center;gap:10px}
 
-    .dialogue-box{font-size:16px;font-weight:500;color:#0b1220;background:white;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:10px 12px;width:92%;max-width:760px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .dialogue-box.teacher{background:linear-gradient(90deg, rgba(11,120,209,0.12), rgba(255,255,255,0));}
-    .dialogue-box.student{background:linear-gradient(90deg, rgba(249,115,22,0.12), rgba(255,255,255,0));}
-    .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(3,7,18,0.35);opacity:0;visibility:hidden;transition:opacity .2s ease;z-index:120}
+  .drawer-backdrop.open{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;left:-320px;width:320px;height:100vh;background:#fff;box-shadow:4px 0 24px rgba(2,6,23,0.12);transition:left .28s ease;z-index:130;padding:18px;overflow:auto}
+  .drawer.open{left:0}
+  .drawer h3{margin-bottom:8px}
 
-    textarea{display:none}
+  .mini-widget{position:fixed;top:12px;right:12px;width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#60a5fa);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;box-shadow:0 6px 20px rgba(2,6,23,0.18);z-index:200;visibility:hidden;opacity:0;transform:translateY(-6px);transition:all .2s ease}
+  .mini-widget.show{visibility:visible;opacity:1;transform:translateY(0)}
+  .mini-widget button{background:transparent;border:0;color:white;font-weight:800;cursor:pointer}
 
-    @media (max-width:600px){
-      .teaching-area{width:96%;padding:12px}
-      .avatar-svg{width:84px;height:84px}
-      .avatar-wrap{width:100px}
-      #playBtn{padding:8px 12px;font-size:14px}
-      .slide-column{height:auto;flex-direction:row}
-      .slide-thumb{width:64px;height:44px}
-    }
-  </style>
+  @media(max-width:980px){.dashboard{grid-template-columns:1fr}aside.right{order:3}}
+</style>
 </head>
 <body>
-  <div id="teachingarea" class="teaching-area">
-    <button id="toggleBtn" class="toggle-btn">Collapse</button>
-
-    <div class="avatars">
-      <div class="avatar-wrap">
-        <svg id="teacherAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="tGrad" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs>
-          <rect width="120" height="120" rx="60" fill="url(#tGrad)"/>
-          <circle cx="60" cy="38" r="18" fill="#fff"/>
-          <g id="teacherMouth" class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220"/></g>
-        </svg>
-        <div class="avatar-label">Teacher</div>
-      </div>
-
-      <div style="flex:1"></div>
-
-      <div class="avatar-wrap">
-        <svg id="studentAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="sGrad" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
-          <rect width="120" height="120" rx="60" fill="url(#sGrad)"/>
-          <circle cx="60" cy="38" r="18" fill="#fff"/>
-          <g id="studentMouth" class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4"/></g>
-        </svg>
-        <div class="avatar-label">Student</div>
-      </div>
-    </div>
-
-    <div class="slides-container">
-      <div class="slide-column" id="slideTop"><div class="slide-thumb" id="slideTopThumb"></div><div class="slide-text" id="slideTopText">(previous slide)</div></div>
-      <div class="slide-column" id="slideBottom"><div class="slide-thumb" id="slideBottomThumb"></div><div class="slide-text" id="slideBottomText">(current slide)</div></div>
-    </div>
-
-    <div style="display:flex;gap:12px;align-items:center;width:92%;max-width:760px;justify-content:space-between">
-      <div id="dialogueBox" class="dialogue-box" style="flex:1"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
-      <button id="playBtn">Play</button>
-    </div>
+<header>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button id="openDrawerBtn" class="icon-btn" title="Open drawer">☰</button>
+    <div class="brand">Synthetic Speak — Teaching Dashboard</div>
   </div>
+  <button id="collapseBtn" class="icon-btn" title="Collapse">⬇︎</button>
+</header>
 
-  <textarea id="dialoguesText">Teacher: Welcome to today's class.
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer">
+  <h3>Voice Controls</h3>
+  <label>Teacher Voice<select id="teacherVoiceSelect" class="voice-select"></select></label>
+  <label>Teacher Rate<input id="teacherRate" type="range" min="0.6" max="1.5" step="0.05" value="1" class="rate"></label>
+  <hr>
+  <label>Student Voice<select id="studentVoiceSelect" class="voice-select"></select></label>
+  <label>Student Rate<input id="studentRate" type="range" min="0.6" max="1.5" step="0.05" value="1" class="rate"></label>
+  <button id="drawerCloseBtn" class="btn primary" style="margin-top:12px">Done</button>
+</aside>
+
+<div class="mini-widget" id="miniWidget"><button id="restoreBtn">⇪</button></div>
+
+<div class="container">
+  <div class="dashboard" id="dashboard">
+    <main class="main-content" id="mainContent">
+      <div class="avatars">
+        <svg id="teacherAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tGrad" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#tGrad)"/><circle cx="60" cy="38" r="18" fill="#fff"/><g class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220"/></g></svg>
+        <svg id="studentAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sGrad" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#sGrad)"/><circle cx="60" cy="38" r="18" fill="#fff"/><g class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4"/></g></svg>
+      </div>
+      <div class="slide" id="slideTop"><div class="thumb" id="slideTopThumb"></div><div class="slide-text" id="slideTopText">(previous slide)</div></div>
+      <div class="slide" id="slideBottom"><div class="thumb" id="slideBottomThumb"></div><div class="slide-text" id="slideBottomText">(current slide)</div></div>
+      <div class="dialogue-box" id="dialogueBox"><div id="currentSpeaker" class="speaker"></div><div id="currentDialogue">Click Play to start</div></div>
+    </main>
+    <aside class="right" id="rightPanel"><h4>Slide History</h4><div id="history" style="display:flex;flex-direction:column;gap:8px"></div></aside>
+  </div>
+</div>
+
+<footer>
+  <button id="playBtn" class="btn primary">Play</button>
+  <button id="pauseBtn" class="btn warn">Pause</button>
+  <button id="resumeBtn" class="btn success">Resume</button>
+  <button id="stopBtn" class="btn danger">Stop</button>
+</footer>
+
+<textarea id="dialoguesText" style="display:none">Teacher: Welcome to today's class.
 Student: Hello, I'm ready.
 Teacher: We'll discuss data structures.
 Student: Sounds great, let's go.
 Teacher: First, arrays are contiguous collections.
 Student: Okay, I understand the basics now.</textarea>
 
-  <script>
-    const slideTop = document.getElementById('slideTop');
-    const slideBottom = document.getElementById('slideBottom');
-    const slideTopText = document.getElementById('slideTopText');
-    const slideBottomText = document.getElementById('slideBottomText');
-    const slideTopThumb = document.getElementById('slideTopThumb');
-    const slideBottomThumb = document.getElementById('slideBottomThumb');
-    const dialogueBox = document.getElementById('dialogueBox');
-    const currentSpeaker = document.getElementById('currentSpeaker');
-    const currentDialogue = document.getElementById('currentDialogue');
-    const playBtn = document.getElementById('playBtn');
-    const toggleBtn = document.getElementById('toggleBtn');
-    const teachingArea = document.getElementById('teachingarea');
-    const teacherAvatar = document.getElementById('teacherAvatar');
-    const studentAvatar = document.getElementById('studentAvatar');
+<script>
+const openDrawerBtn=document.getElementById('openDrawerBtn');
+const drawer=document.getElementById('drawer');
+const drawerBackdrop=document.getElementById('drawerBackdrop');
+const drawerCloseBtn=document.getElementById('drawerCloseBtn');
+const collapseBtn=document.getElementById('collapseBtn');
+const miniWidget=document.getElementById('miniWidget');
+const restoreBtn=document.getElementById('restoreBtn');
+const teacherVoiceSelect=document.getElementById('teacherVoiceSelect');
+const studentVoiceSelect=document.getElementById('studentVoiceSelect');
+const teacherRate=document.getElementById('teacherRate');
+const studentRate=document.getElementById('studentRate');
+const playBtn=document.getElementById('playBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const resumeBtn=document.getElementById('resumeBtn');
+const stopBtn=document.getElementById('stopBtn');
+const slideTopText=document.getElementById('slideTopText');
+const slideBottomText=document.getElementById('slideBottomText');
+const slideTopThumb=document.getElementById('slideTopThumb');
+const slideBottomThumb=document.getElementById('slideBottomThumb');
+const historyEl=document.getElementById('history');
+const currentSpeaker=document.getElementById('currentSpeaker');
+const currentDialogue=document.getElementById('currentDialogue');
+const teacherAvatar=document.getElementById('teacherAvatar');
+const studentAvatar=document.getElementById('studentAvatar');
 
-    // create 9 colorful dummy SVG thumbnails
-    const dummySvgs = Array.from({length:9}).map((_,i)=>{
-      const colors = ['#fde68a','#fca5a5','#bbf7d0','#bfdbfe','#fef08a','#ffd7a8','#c7bfff','#ffcbc1','#d7f6ff'];
-      const accents = ['#0b78d1','#f97316','#7c3aed','#059669','#b45309','#be185d','#0ea5e9','#92400e','#047857'];
-      const bg = colors[i%colors.length];
-      const accent = accents[i%accents.length];
-      const svg = `
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 84 56' preserveAspectRatio='xMidYMid slice'>
-          <rect width='100%' height='100%' rx='8' fill='${bg}' />
-          <circle cx='18' cy='20' r='9' fill='${accent}' fill-opacity='0.95'/>
-          <rect x='36' y='10' width='38' height='8' rx='4' fill='rgba(255,255,255,0.6)' />
-          <rect x='36' y='24' width='28' height='6' rx='3' fill='rgba(255,255,255,0.45)' />
-        </svg>
-      `;
-      return svg;
-    });
+openDrawerBtn.onclick=()=>{drawer.classList.add('open');drawerBackdrop.classList.add('open');};
+drawerBackdrop.onclick=()=>{drawer.classList.remove('open');drawerBackdrop.classList.remove('open');};
+drawerCloseBtn.onclick=()=>{drawer.classList.remove('open');drawerBackdrop.classList.remove('open');};
+collapseBtn.onclick=()=>{document.getElementById('dashboard').style.display='none';miniWidget.classList.add('show');};
+restoreBtn.onclick=()=>{document.getElementById('dashboard').style.display='grid';miniWidget.classList.remove('show');};
 
-    let dummyIndex = 0;
-    function getNextDummy(){ const idx = dummyIndex % dummySvgs.length; dummyIndex++; return dummySvgs[idx]; }
-    function setThumb(container, svg){ container.innerHTML = svg; }
+const thumbs=[];for(let i=0;i<8;i++)thumbs.push(`<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='80' rx='8' fill='hsl(${i*40},80%,90%)'/><circle cx='36' cy='40' r='18' fill='hsl(${i*40},60%,50%)'/></svg>`);
+let tIndex=0;function nextThumb(){return thumbs[tIndex++%thumbs.length];}
+slideTopThumb.innerHTML=nextThumb();slideBottomThumb.innerHTML=nextThumb();
 
-    function showSlide(line){
-      // move bottom to top
-      slideTopText.textContent = slideBottomText.textContent;
-      slideTopThumb.innerHTML = slideBottomThumb.innerHTML;
-      // set new bottom
-      slideBottomText.textContent = line.text;
-      setThumb(slideBottomThumb, getNextDummy());
-      // color classes
-      slideTop.className = 'slide-column ' + (slideTop.classList.contains('teacher') ? 'teacher' : (slideTop.classList.contains('student') ? 'student' : ''));
-      slideBottom.className = 'slide-column ' + line.role;
-      dialogueBox.className = 'dialogue-box ' + line.role;
-      // speaker label
-      currentSpeaker.textContent = line.role==='teacher' ? 'Teacher:' : 'Student:';
-      currentDialogue.textContent = line.text;
-    }
+let voices=[];function populateVoices(){voices=speechSynthesis.getVoices();teacherVoiceSelect.innerHTML='';studentVoiceSelect.innerHTML='';voices.forEach(v=>{teacherVoiceSelect.add(new Option(v.name,v.name));studentVoiceSelect.add(new Option(v.name,v.name));});if(voices.length){teacherVoiceSelect.value=voices[0].name;studentVoiceSelect.value=voices[Math.min(1,voices.length-1)].name;}}speechSynthesis.onvoiceschanged=populateVoices;setTimeout(populateVoices,300);
 
-    function parseDialogues(){
-      const raw = document.getElementById('dialoguesText').value || '';
-      return raw.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(Teacher|Student):\s*(.*)/i);if(m) return {role:m[1].toLowerCase(),text:m[2]};return {role:'teacher',text:l};});
-    }
+function parseDialogues(){const raw=document.getElementById('dialoguesText').value||'';return raw.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(Teacher|Student):\s*(.*)/i);if(m)return{role:m[1].toLowerCase(),text:m[2]};return{role:'teacher',text:l};});}
 
-    async function speakLine(line){
-      return new Promise(res=>{
-        const u=new SpeechSynthesisUtterance(line.text);
-        u.onstart=()=>{ showSlide(line); startSpeakingVisual(line.role); };
-        u.onend=()=>{ stopSpeakingVisual(line.role); setTimeout(res,160); };
-        speechSynthesis.speak(u);
-      });
-    }
+function pushSlide(line){slideTopText.textContent=slideBottomText.textContent;slideTopThumb.innerHTML=slideBottomThumb.innerHTML;slideBottomText.textContent=line.text;slideBottomThumb.innerHTML=nextThumb();const row=document.createElement('div');row.textContent=`${line.role.toUpperCase()}: ${line.text}`;historyEl.prepend(row);}
 
-    function startSpeakingVisual(role){ if(role==='teacher') teacherAvatar.classList.add('speaking'); else studentAvatar.classList.add('speaking'); }
-    function stopSpeakingVisual(role){ if(role==='teacher') teacherAvatar.classList.remove('speaking'); else studentAvatar.classList.remove('speaking'); }
+function animateMouth(avatar){const mouth=avatar.querySelector('.mouth ellipse');let scale=1;return setInterval(()=>{scale=scale===1?1.3:1;mouth.setAttribute('transform',`scale(1,${scale})`);},200);} 
 
-    async function playAll(){
-      if(speechSynthesis.speaking) speechSynthesis.cancel();
-      const lines = parseDialogues();
-      // initialize thumbs
-      slideTopThumb.innerHTML = getNextDummy();
-      slideBottomThumb.innerHTML = getNextDummy();
-      slideTopText.textContent='(previous slide)';
-      slideBottomText.textContent='(current slide)';
-      for(const l of lines){ await speakLine(l); }
-      currentSpeaker.textContent=''; currentDialogue.textContent='All dialogues finished.';
-    }
+function speakLine(line){return new Promise(res=>{const u=new SpeechSynthesisUtterance(line.text);const v=(line.role==='teacher'?teacherVoiceSelect.value:studentVoiceSelect.value);const vc=voices.find(x=>x.name===v);if(vc)u.voice=vc;u.rate=(line.role==='teacher'?parseFloat(teacherRate.value):parseFloat(studentRate.value));let anim;
+u.onstart=()=>{currentSpeaker.textContent=line.role==='teacher'?'Teacher:':'Student:';currentDialogue.textContent=line.text;pushSlide(line);const avatar=line.role==='teacher'?teacherAvatar:studentAvatar;anim=animateMouth(avatar);};
+u.onend=()=>{clearInterval(anim);const avatar=line.role==='teacher'?teacherAvatar:studentAvatar;avatar.querySelector('.mouth ellipse').setAttribute('transform','scale(1,1)');setTimeout(res,150);};speechSynthesis.speak(u);});}
 
-    playBtn.addEventListener('click', ()=>{ playAll(); });
+let paused=false,stopped=false;
+async function playAll(){if(speechSynthesis.speaking)speechSynthesis.cancel();paused=false;stopped=false;const lines=parseDialogues();for(const l of lines){if(stopped)break;await speakLine(l);while(paused&&!stopped){await new Promise(r=>setTimeout(r,150));}}if(!stopped)currentDialogue.textContent='All dialogues finished.';}
 
-    // Toggle collapse / restore
-    let collapsed = false;
-    toggleBtn.addEventListener('click', ()=>{
-      collapsed = !collapsed;
-      teachingArea.classList.toggle('collapsed', collapsed);
-      toggleBtn.textContent = collapsed ? 'Restore' : 'Collapse';
-      // hide play button when collapsed
-      playBtn.style.display = collapsed ? 'none' : '';
-    });
-
-    // ensure initial thumbs are populated
-    slideTopThumb.innerHTML = getNextDummy();
-    slideBottomThumb.innerHTML = getNextDummy();
-  </script>
+playBtn.onclick=()=>{stopped=false;paused=false;playAll();};pauseBtn.onclick=()=>{if(speechSynthesis.speaking){speechSynthesis.pause();paused=true;}};resumeBtn.onclick=()=>{if(paused){speechSynthesis.resume();paused=false;}};stopBtn.onclick=()=>{speechSynthesis.cancel();stopped=true;paused=false;currentDialogue.textContent='Stopped.';};
+</script>
 </body>
 </html>
-
-
-         

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "u1",
+    "participant": "teacher",
+    "text": "Hello students. Today we will learn about arrays and their uses.",
+    "voice": "",
+    "rate": 1.0
+  },
+  {
+    "id": "u2",
+    "participant": "student",
+    "text": "Yes teacher. Could you explain what an array is with an example?",
+    "voice": "",
+    "rate": 1.0
+  },
+  {
+    "id": "u3",
+    "participant": "teacher",
+    "text": "An array is an ordered collection of items. For example, a list of student names.",
+    "voice": "",
+    "rate": 1.0
+  },
+  {
+    "id": "u4",
+    "participant": "student",
+    "text": "Thank you. That helps a lot.",
+    "voice": "",
+    "rate": 1.0
+  }
+]

@@ -12,14 +12,10 @@
     header h1{margin:0;font-size:28px;color:var(--accent-blue)}
     header p{margin:6px 0 0;color:#333;font-size:16px;}
 
-    section.importance{padding:20px;background:#fff5ee;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.05);}
-    section.importance h2{color:var(--accent-orange);margin-bottom:10px;}
-    section.importance p{color:#333;font-size:16px;max-width:800px;margin:0 auto;}
-
-    .teaching-area{position:fixed;top:0;left:50%;transform:translateX(-50%);margin:0 auto;padding:20px;width:90%;max-width:900px;background:rgba(255,255,255,0.7);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;gap:20px;z-index:999;}
+    .teaching-area{position:fixed;top:0;left:50%;transform:translateX(-50%);margin:0 auto;padding:20px;width:90%;max-width:900px;background:rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;gap:20px;z-index:90;border:2px solid var(--accent-blue);}
 
     .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:180px;z-index:20}
-    .avatars{width:100%;display:flex;justify-content:space-between;align-items:flex-start;}
+    .avatars{width:100%;display:flex;justify-content:space-between;}
     .avatar{width:140px;height:140px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative}
     .avatar svg{width:110px;height:110px}
     .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
@@ -29,17 +25,13 @@
     .speaking.student::after{box-shadow:0 0 20px 6px rgba(249,115,22,0.14)}
     @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
 
-    #playBtn{padding:12px 20px;font-size:16px;font-weight:600;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all 0.2s ease;margin-top:10px;}
+    #playBtn{padding:12px 20px;font-size:16px;font-weight:600;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;position:fixed;bottom:20px;left:20px;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all 0.2s ease}
     #playBtn:hover{transform:scale(1.05)}
 
-    .dialogue-box{font-size:18px;font-weight:500;color:#0b1220;background:white;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:12px 16px;margin:10px auto;max-width:68%;min-height:56px;display:flex;align-items:center;justify-content:flex-start;gap:10px;}
-    .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
-
     @media (max-width:600px){
-      #playBtn{font-size:14px;padding:10px 16px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
+      #playBtn{bottom:10px;left:10px;font-size:14px;padding:10px 16px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
       header h1{font-size:22px;}
       header p{font-size:14px;}
-      section.importance p{font-size:14px;}
       .teaching-area{padding:12px;width:95%;}
     }
 
@@ -50,21 +42,14 @@
     .slide-content svg{width:60px;height:60px}
     .slide-text{font-size:15px;font-weight:500;color:#0b1220;text-align:center;padding:0 10px}
 
+    .dialogue-box{font-size:18px;font-weight:500;color:#0b1220;background:white;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:12px 16px;margin:0 auto;max-width:68%;min-height:56px;display:flex;align-items:center;justify-content:flex-start;gap:10px}
+    .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
+
     textarea{display:none}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to Synthetic Speak</h1>
-    <p>An interactive teaching system where teachers and students communicate through synthetic speech, visuals, and animated slides.</p>
-  </header>
-
-  <section class="importance">
-    <h2>Importance of Synthetic Speak</h2>
-    <p>This system brings a new dimension to online education. It enables interactive sessions with lifelike communication between teachers and students using AI-generated speech and visual cues. By combining voice, animation, and text, learners can better understand concepts, stay engaged, and feel connected — even in virtual classrooms. Teachers can also automate lessons and create immersive experiences for their students.</p>
-  </section>
-
-  <div class="teaching-area">
+  <div id="teachingarea" class="teaching-area">
     <div class="avatars">
       <div id="teacherWrap" class="avatar-wrap">
         <div id="teacherAvatar" class="avatar">
@@ -77,25 +62,26 @@
           <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#sg)"/><circle cx="60" cy="38" r="18" fill="#fff"/><path d="M28 92c6-18 18-26 32-26s26 8 34 26H28z" fill="#fff"/><path d="M52 46c2 3 8 3 10 0" stroke="#0b1220" stroke-width="2" fill="none"/><g stroke="#0b1220" stroke-width="2" fill="none"><path d="M36 36c0-8 6-14 24-14s24 6 24 14"/><rect x="30" y="44" width="12" height="16" rx="3" fill="#fff"/><rect x="78" y="44" width="12" height="16" rx="3" fill="#fff"/></g><g id="studentMouth" class="mouth" transform="translate(60,58)"><ellipse cx="0" cy="0" rx="12" ry="5" fill="#fff" stroke="#0b1220" stroke-width="1.6"/></g></svg>
         </div><div class="avatar-label">Student</div>
       </div>
-      <div class="slides-container">
+    </div>
+
+    <div class="slides-container">
       <div class="slide-column" id="slideTop"></div>
       <div class="slide-column" id="slideBottom"></div>
     </div>
+    <div class="bottom-area">
+      <button id="playBtn">Play</button>
+      <div class="dialogue-box"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
     </div>
-
-    
-
-    <div class="dialogue-box"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
-
-    <button id="playBtn">Play</button>
   </div>
 
-  <textarea id="dialoguesText">Teacher: Welcome to today's class.
+  <div>
+    <textarea id="dialoguesText">Teacher: Welcome to today's class.
 Student: Hello sir, I'm ready.
 Teacher: Today we'll discuss data structures.
 Student: Great! I find that interesting.
 Teacher: Let's begin with arrays.
 Student: Sure, please go ahead.</textarea>
+  </div>
 
   <script>
     const synth = window.speechSynthesis;

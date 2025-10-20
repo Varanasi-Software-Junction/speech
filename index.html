@@ -6,157 +6,168 @@
   <title>Synthetic Speak — Interactive Teaching System</title>
   <style>
     :root{ --bg:#f6f8fb; --accent-blue:#0b78d1; --accent-orange:#f97316; --shadow:0 6px 18px rgba(0,0,0,0.08) }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif;overflow:hidden}
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif}
 
-    header{background:white;box-shadow:0 4px 16px rgba(0,0,0,0.05);padding:20px;text-align:center;position:relative;z-index:100}
-    header h1{margin:0;font-size:28px;color:var(--accent-blue)}
-    header p{margin:6px 0 0;color:#333;font-size:16px;}
+    /* Main teaching area */
+    .teaching-area{position:fixed;top:16px;left:50%;transform:translateX(-50%);margin:0 auto;padding:18px;width:92%;max-width:920px;background:rgba(255,255,255,0.85);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:999;border:2px solid var(--accent-blue);transition:all 0.35s ease}
 
-    .teaching-area{position:fixed;top:0;left:50%;transform:translateX(-50%);margin:0 auto;padding:20px;width:90%;max-width:900px;background:rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;gap:20px;z-index:90;border:2px solid var(--accent-blue);}
+    /* Collapsed state: move to top-right */
+    .teaching-area.collapsed{left:auto;right:16px;top:12px;transform:none;width:240px;padding:10px;border-radius:10px;opacity:1}
+    /* when collapsed hide large elements */
+    .teaching-area.collapsed .slides-container,
+    .teaching-area.collapsed .dialogue-box{display:none}
+    .teaching-area.collapsed .avatars{justify-content:flex-end}
+    .teaching-area.collapsed .avatar-label{display:none}
 
-    .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:180px;z-index:20}
-    .avatars{width:100%;display:flex;justify-content:space-between;}
-    .avatar{width:140px;height:140px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative}
-    .avatar svg{width:110px;height:110px}
-    .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
-    .mouth{transform-origin:50% 50%}
-    .speaking::after{content:'';position:absolute;left:-10px;top:-10px;right:-10px;bottom:-10px;border-radius:50%;animation:pulse 1.4s infinite ease-in-out}
-    .speaking.teacher::after{box-shadow:0 0 20px 6px rgba(11,120,209,0.14)}
-    .speaking.student::after{box-shadow:0 0 20px 6px rgba(249,115,22,0.14)}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+    /* toggle button */
+    .toggle-btn{position:absolute;top:8px;right:10px;padding:6px 10px;background:var(--accent-blue);color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.18);z-index:1000}
 
-    #playBtn{padding:12px 20px;font-size:16px;font-weight:600;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;position:fixed;bottom:20px;left:20px;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all 0.2s ease}
-    #playBtn:hover{transform:scale(1.05)}
+    /* Play button inside teaching area */
+    #playBtn{padding:10px 16px;font-size:15px;font-weight:700;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(11,120,209,0.16)}
 
-    @media (max-width:600px){
-      #playBtn{bottom:10px;left:10px;font-size:14px;padding:10px 16px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
-      header h1{font-size:22px;}
-      header p{font-size:14px;}
-      .teaching-area{padding:12px;width:95%;}
-    }
+    .avatars{width:100%;display:flex;justify-content:space-between;align-items:center}
+    .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:140px}
+    .avatar{width:110px;height:110px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-weight:800;font-size:44px;color:white}
+    .avatar.teacher{background:var(--accent-blue)}
+    .avatar.student{background:var(--accent-orange)}
+    .avatar.speaking{transform:scale(1.06);box-shadow:0 10px 30px rgba(0,0,0,0.18)}
 
-    .slides-container{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;transition:all .4s ease;width:100%}
-    .slide-column{width:90%;max-width:360px;height:160px;border-radius:12px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:transform 0.5s ease, opacity 0.5s ease;position:relative}
+    .slides-container{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+    .slide-column{width:92%;max-width:420px;height:140px;border-radius:10px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .slide-text{padding:12px;font-weight:600;color:#0b1220;text-align:center}
 
-    .slide-content{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-    .slide-content svg{width:60px;height:60px}
-    .slide-text{font-size:15px;font-weight:500;color:#0b1220;text-align:center;padding:0 10px}
-
-    .dialogue-box{font-size:18px;font-weight:500;color:#0b1220;background:white;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:12px 16px;margin:0 auto;max-width:68%;min-height:56px;display:flex;align-items:center;justify-content:flex-start;gap:10px}
+    .dialogue-box{font-size:16px;font-weight:500;color:#0b1220;background:white;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:10px 12px;width:92%;max-width:760px;display:flex;align-items:center;justify-content:space-between;gap:10px}
     .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
 
     textarea{display:none}
+
+    @media (max-width:600px){
+      .teaching-area{width:96%;padding:12px}
+      .avatar{width:84px;height:84px;font-size:32px}
+      .avatar-wrap{width:100px}
+      #playBtn{padding:8px 12px;font-size:14px}
+      .slide-column{height:110px}
+    }
   </style>
 </head>
 <body>
   <div id="teachingarea" class="teaching-area">
+    <button id="toggleBtn" class="toggle-btn">Collapse</button>
+
     <div class="avatars">
-      <div id="teacherWrap" class="avatar-wrap">
-        <div id="teacherAvatar" class="avatar">
-          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#tg)"/><circle cx="60" cy="38" r="18" fill="#fff"/><path d="M30 92c6-18 18-26 30-26s24 8 30 26H30z" fill="#fff"/><g fill="none" stroke="#0b1220" stroke-width="2"><circle cx="52" cy="38" r="5"/><circle cx="68" cy="38" r="5"/><path d="M57 38h6"/></g><g id="teacherMouth" class="mouth" transform="translate(60,58)"><ellipse cx="0" cy="0" rx="12" ry="3" fill="#0b1220"/></g></svg>
-        </div><div class="avatar-label">Teacher</div>
+      <div class="avatar-wrap">
+        <div id="teacherAvatar" class="avatar teacher">T</div>
+        <div class="avatar-label">Teacher</div>
       </div>
 
-      <div id="studentWrap" class="avatar-wrap">
-        <div id="studentAvatar" class="avatar">
-          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#sg)"/><circle cx="60" cy="38" r="18" fill="#fff"/><path d="M28 92c6-18 18-26 32-26s26 8 34 26H28z" fill="#fff"/><path d="M52 46c2 3 8 3 10 0" stroke="#0b1220" stroke-width="2" fill="none"/><g stroke="#0b1220" stroke-width="2" fill="none"><path d="M36 36c0-8 6-14 24-14s24 6 24 14"/><rect x="30" y="44" width="12" height="16" rx="3" fill="#fff"/><rect x="78" y="44" width="12" height="16" rx="3" fill="#fff"/></g><g id="studentMouth" class="mouth" transform="translate(60,58)"><ellipse cx="0" cy="0" rx="12" ry="5" fill="#fff" stroke="#0b1220" stroke-width="1.6"/></g></svg>
-        </div><div class="avatar-label">Student</div>
+      <div style="flex:1"></div>
+
+      <div class="avatar-wrap">
+        <div id="studentAvatar" class="avatar student">S</div>
+        <div class="avatar-label">Student</div>
       </div>
     </div>
 
     <div class="slides-container">
-      <div class="slide-column" id="slideTop"></div>
-      <div class="slide-column" id="slideBottom"></div>
+      <div class="slide-column" id="slideTop"><div class="slide-text" id="slideTopText">(previous slide)</div></div>
+      <div class="slide-column" id="slideBottom"><div class="slide-text" id="slideBottomText">(current slide)</div></div>
     </div>
-    <div class="bottom-area">
+
+    <div style="display:flex;gap:12px;align-items:center;width:92%;max-width:760px;justify-content:space-between">
+      <div class="dialogue-box" style="flex:1"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
       <button id="playBtn">Play</button>
-      <div class="dialogue-box"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
     </div>
+
   </div>
 
-  <div>
-    <textarea id="dialoguesText">Teacher: Welcome to today's class.
-Student: Hello sir, I'm ready.
-Teacher: Today we'll discuss data structures.
-Student: Great! I find that interesting.
-Teacher: Let's begin with arrays.
-Student: Sure, please go ahead.</textarea>
-  </div>
+  <textarea id="dialoguesText">Teacher: Welcome to today's class.
+Student: Hello, I'm ready.
+Teacher: We'll discuss data structures.
+Student: Sounds great, let's go.
+Teacher: First, arrays are contiguous collections.
+Student: Okay, I understand the basics now.</textarea>
 
   <script>
-    const synth = window.speechSynthesis;
-    const teacherAvatar=document.getElementById('teacherAvatar');
-    const studentAvatar=document.getElementById('studentAvatar');
-    const teacherMouth=document.getElementById('teacherMouth');
-    const studentMouth=document.getElementById('studentMouth');
-    const currentSpeaker=document.getElementById('currentSpeaker');
-    const currentDialogue=document.getElementById('currentDialogue');
-    const slideTop=document.getElementById('slideTop');
-    const slideBottom=document.getElementById('slideBottom');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const teachingArea = document.getElementById('teachingarea');
+    const playBtn = document.getElementById('playBtn');
+    const teacherAvatar = document.getElementById('teacherAvatar');
+    const studentAvatar = document.getElementById('studentAvatar');
+    const slideTopText = document.getElementById('slideTopText');
+    const slideBottomText = document.getElementById('slideBottomText');
+    const currentSpeaker = document.getElementById('currentSpeaker');
+    const currentDialogue = document.getElementById('currentDialogue');
 
-    const state={teacher:{speaking:false,amp:0,rAF:0},student:{speaking:false,amp:0,rAF:0}};
+    let collapsed = false;
+    toggleBtn.addEventListener('click', ()=>{
+      collapsed = !collapsed;
+      teachingArea.classList.toggle('collapsed', collapsed);
+      toggleBtn.textContent = collapsed ? 'Restore' : 'Collapse';
+      // when collapsed, make toggle button visible at top-right of area (it's inside area and stays visible)
+    });
 
-    function animate(role){
-      const s=state[role];
-      const mouth=role==='teacher'?teacherMouth:studentMouth;
-      if(!mouth)return;
-      let last=performance.now();
-      function loop(now){
-        const dt=Math.min(40,now-last);last=now;
-        s.amp=Math.max(0,s.amp-(dt/1000)*0.8);
-        const jitter=(Math.sin(now/80+(role==='teacher'?0:1.3))+1)*0.05;
-        const amp=Math.min(1.6,s.amp+jitter);
-        const scaleY=0.18+(Math.tanh(amp*1.4))*(1.1-0.18);
-        mouth.style.transform=`translate(60px,58px) scaleY(${scaleY.toFixed(3)})`;
-        if(s.speaking||s.amp>0.02){s.rAF=requestAnimationFrame(loop);}else{mouth.style.transform=`translate(60px,58px) scaleY(0.18)`;cancelAnimationFrame(s.rAF);s.rAF=0;}
-      }
-      if(!s.rAF)s.rAF=requestAnimationFrame(loop);
+    // Simple speaking animation using SpeechSynthesis
+    function parseDialogues(){
+      return document.getElementById('dialoguesText').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+        const m = l.match(/^(Teacher|Student):\s*(.*)/i);
+        if(m) return {role: m[1].toLowerCase(), text: m[2]};
+        return {role: 'teacher', text: l};
+      });
     }
 
-    function startSpeaking(role){state[role].speaking=true;state[role].amp=0.9;if(role==='teacher'){teacherAvatar.classList.add('speaking','teacher');}else{studentAvatar.classList.add('speaking','student');}animate(role);}
-    function stopSpeaking(role){state[role].speaking=false;if(role==='teacher'){teacherAvatar.classList.remove('speaking','teacher');}else{studentAvatar.classList.remove('speaking','student');}}
-
-    function parseDialogues(){return document.getElementById('dialoguesText').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(Teacher|Student):\s*(.*)/i);if(m)return{role:m[1].toLowerCase(),text:m[2]};return{role:'teacher',text:l};});}
-
-    function createDummySlideContent(line){
-      const color=line.role==='teacher'?'#0b78d1':'#f97316';
-      const icon=`<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='45' fill='${color}'/><text x='50%' y='54%' text-anchor='middle' font-size='30' fill='white'>${line.role==='teacher'?'T':'S'}</text></svg>`;
-      const div=document.createElement('div');
-      div.className='slide-content';
-      div.innerHTML=`${icon}<div class='slide-text'>${line.text}</div>`;
-      return div;
+    function startSpeakingRole(role){
+      if(role==='teacher'){
+        teacherAvatar.classList.add('speaking');
+      } else {
+        studentAvatar.classList.add('speaking');
+      }
+    }
+    function stopSpeakingRole(role){
+      if(role==='teacher') teacherAvatar.classList.remove('speaking');
+      else studentAvatar.classList.remove('speaking');
     }
 
     function showSlide(line){
-      const newSlide=createDummySlideContent(line);
-      slideTop.style.opacity='0.7';
-      slideTop.style.transform='translateY(-10px)';
-      setTimeout(()=>{
-        slideTop.innerHTML=slideBottom.innerHTML;
-        slideTop.style.opacity='1';
-        slideTop.style.transform='translateY(0)';
-        slideBottom.innerHTML='';
-        slideBottom.appendChild(newSlide);
-      },200);
+      // move bottom to top, new into bottom
+      slideTopText.textContent = slideBottomText.textContent;
+      slideBottomText.textContent = line.text;
     }
 
     function speakLine(line){
-      return new Promise(res=>{
-        const u=new SpeechSynthesisUtterance(line.text);
-        u.onstart=()=>{startSpeaking(line.role);currentSpeaker.textContent=line.role==='teacher'?'Teacher:':'Student:';currentDialogue.textContent=line.text;showSlide(line);};
-        u.onend=()=>{stopSpeaking(line.role);res();};
-        synth.speak(u);
+      return new Promise((res)=>{
+        const u = new SpeechSynthesisUtterance(line.text);
+        u.rate = 1.0; u.pitch = line.role==='teacher'?1.0:1.05;
+        u.onstart = ()=>{ startSpeakingRole(line.role); currentSpeaker.textContent = line.role==='teacher' ? 'Teacher:' : 'Student:'; currentDialogue.textContent = line.text; showSlide(line); };
+        u.onend = ()=>{ stopSpeakingRole(line.role); setTimeout(res, 160); };
+        speechSynthesis.speak(u);
       });
     }
 
     async function playAll(){
-      const lines=parseDialogues();
-      slideTop.innerHTML='';slideBottom.innerHTML='';
-      for(const l of lines){await speakLine(l);await new Promise(r=>setTimeout(r,200));}
-      currentSpeaker.textContent='';currentDialogue.textContent='All dialogues finished.';
+      // stop any previous
+      if(speechSynthesis.speaking) speechSynthesis.cancel();
+      const lines = parseDialogues();
+      slideTopText.textContent = '(previous slide)';
+      slideBottomText.textContent = '(current slide)';
+      for(const l of lines){
+        await speakLine(l);
+      }
+      currentSpeaker.textContent = '';
+      currentDialogue.textContent = 'All dialogues finished.';
     }
 
-    document.getElementById('playBtn').addEventListener('click',()=>{if(synth.speaking)synth.cancel();playAll();});
+    playBtn.addEventListener('click', ()=>{ playAll(); });
+
+    // make sure toggle doesn't steal focus and hide play when minimized
+    const observer = new MutationObserver(()=>{
+      if(teachingArea.classList.contains('collapsed')){
+        playBtn.style.display = 'none';
+      } else {
+        playBtn.style.display = '';
+      }
+    });
+    observer.observe(teachingArea, {attributes:true,attributeFilter:['class']});
+
   </script>
 </body>
 </html>

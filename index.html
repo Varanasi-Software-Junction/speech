@@ -1,4 +1,4 @@
-<!doctype html>
+ <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -9,7 +9,7 @@
     html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif}
 
     /* Main teaching area */
-    .teaching-area{position:fixed;top:16px;left:50%;transform:translateX(-50%);margin:0 auto;padding:18px;width:92%;max-width:920px;background:rgba(255,255,255,0.85);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:999;border:2px solid var(--accent-blue);transition:all 0.35s ease}
+    .teaching-area{position:fixed;top:16px;left:50%;transform:translateX(-50%);margin:0 auto;padding:18px;width:92%;max-width:920px;background:rgba(255,255,255,0.9);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:999;border:2px solid var(--accent-blue);transition:all 0.35s ease}
 
     /* Collapsed state: move to top-right */
     .teaching-area.collapsed{left:auto;right:16px;top:12px;transform:none;width:240px;padding:10px;border-radius:10px;opacity:1}
@@ -27,10 +27,15 @@
 
     .avatars{width:100%;display:flex;justify-content:space-between;align-items:center}
     .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:140px}
-    .avatar{width:110px;height:110px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-weight:800;font-size:44px;color:white}
-    .avatar.teacher{background:var(--accent-blue)}
-    .avatar.student{background:var(--accent-orange)}
-    .avatar.speaking{transform:scale(1.06);box-shadow:0 10px 30px rgba(0,0,0,0.18)}
+    .avatar-svg{width:110px;height:110px;border-radius:50%;display:block}
+    .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
+    .avatar.speaking svg .mouth{animation:mouthMovement 220ms infinite}
+
+    @keyframes mouthMovement{
+      0% { transform: scaleY(0.7); }
+      50% { transform: scaleY(1.25); }
+      100% { transform: scaleY(0.8); }
+    }
 
     .slides-container{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
     .slide-column{width:92%;max-width:420px;height:140px;border-radius:10px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -43,7 +48,7 @@
 
     @media (max-width:600px){
       .teaching-area{width:96%;padding:12px}
-      .avatar{width:84px;height:84px;font-size:32px}
+      .avatar-svg{width:84px;height:84px}
       .avatar-wrap{width:100px}
       #playBtn{padding:8px 12px;font-size:14px}
       .slide-column{height:110px}
@@ -56,14 +61,34 @@
 
     <div class="avatars">
       <div class="avatar-wrap">
-        <div id="teacherAvatar" class="avatar teacher">T</div>
+        <!-- teacher SVG with mouth group -->
+        <svg id="teacherAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tGrad" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="60" fill="url(#tGrad)"/>
+          <circle cx="60" cy="38" r="18" fill="#fff"/>
+          <g id="teacherMouth" class="mouth" transform="translate(60,65)">
+            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220"/>
+          </g>
+        </svg>
         <div class="avatar-label">Teacher</div>
       </div>
 
       <div style="flex:1"></div>
 
       <div class="avatar-wrap">
-        <div id="studentAvatar" class="avatar student">S</div>
+        <!-- student SVG with mouth group -->
+        <svg id="studentAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sGrad" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="60" fill="url(#sGrad)"/>
+          <circle cx="60" cy="38" r="18" fill="#fff"/>
+          <g id="studentMouth" class="mouth" transform="translate(60,65)">
+            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4"/>
+          </g>
+        </svg>
         <div class="avatar-label">Student</div>
       </div>
     </div>
@@ -97,16 +122,81 @@ Student: Okay, I understand the basics now.</textarea>
     const slideBottomText = document.getElementById('slideBottomText');
     const currentSpeaker = document.getElementById('currentSpeaker');
     const currentDialogue = document.getElementById('currentDialogue');
+    const teacherMouth = document.getElementById('teacherMouth');
+    const studentMouth = document.getElementById('studentMouth');
 
     let collapsed = false;
     toggleBtn.addEventListener('click', ()=>{
       collapsed = !collapsed;
       teachingArea.classList.toggle('collapsed', collapsed);
       toggleBtn.textContent = collapsed ? 'Restore' : 'Collapse';
-      // when collapsed, make toggle button visible at top-right of area (it's inside area and stays visible)
+      // hide play button in collapsed state
+      if(collapsed) playBtn.style.display = 'none'; else playBtn.style.display='';
     });
 
-    // Simple speaking animation using SpeechSynthesis
+    // Speech voices
+    let voices = [];
+    let teacherVoice = null;
+    let studentVoice = null;
+
+    function pickVoices(){
+      voices = speechSynthesis.getVoices();
+      if(!voices || voices.length===0) return;
+      // pick a teacher voice (prefer en-US) and a distinct student voice if possible
+      teacherVoice = voices.find(v=>/en-US/i.test(v.lang)) || voices[0];
+      // pick a different voice for student if available
+      studentVoice = voices.find(v=>v.name !== (teacherVoice && teacherVoice.name) && /en/i.test(v.lang)) || voices.find(v=>v.name !== (teacherVoice && teacherVoice.name)) || voices[1] || voices[0];
+      if(!studentVoice) studentVoice = teacherVoice;
+      console.log('Voices selected', teacherVoice && teacherVoice.name, studentVoice && studentVoice.name);
+    }
+
+    // some browsers load voices asynchronously
+    window.speechSynthesis.onvoiceschanged = pickVoices;
+    setTimeout(pickVoices, 250);
+
+    // mouth animation loop per role
+    const mouthState = {teacher:{running:false,raf:0}, student:{running:false,raf:0}};
+    function animateMouth(role){
+      const state = mouthState[role];
+      const mouth = role==='teacher' ? teacherMouth : studentMouth;
+      if(!mouth) return;
+      let last = performance.now();
+      function loop(now){
+        last = now;
+        const t = now/120 + (role==='teacher'?0:1.2);
+        const sy = 0.8 + Math.abs(Math.sin(t)) * 0.8; // 0.8 - 1.6
+        mouth.style.transform = `translate(60px,65px) scaleY(${sy.toFixed(3)})`;
+        state.raf = requestAnimationFrame(loop);
+      }
+      if(!state.running){ state.running = true; state.raf = requestAnimationFrame(loop); }
+    }
+    function stopMouth(role){
+      const state = mouthState[role];
+      const mouth = role==='teacher' ? teacherMouth : studentMouth;
+      if(state.raf) cancelAnimationFrame(state.raf);
+      state.running = false; state.raf = 0;
+      if(mouth) mouth.style.transform = 'translate(60px,65px) scaleY(1)';
+    }
+
+    function startSpeakingRole(role){
+      if(role==='teacher'){
+        teacherAvatar.classList.add('speaking');
+        animateMouth('teacher');
+      } else {
+        studentAvatar.classList.add('speaking');
+        animateMouth('student');
+      }
+    }
+    function stopSpeakingRole(role){
+      if(role==='teacher'){
+        teacherAvatar.classList.remove('speaking');
+        stopMouth('teacher');
+      } else {
+        studentAvatar.classList.remove('speaking');
+        stopMouth('student');
+      }
+    }
+
     function parseDialogues(){
       return document.getElementById('dialoguesText').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
         const m = l.match(/^(Teacher|Student):\s*(.*)/i);
@@ -115,20 +205,7 @@ Student: Okay, I understand the basics now.</textarea>
       });
     }
 
-    function startSpeakingRole(role){
-      if(role==='teacher'){
-        teacherAvatar.classList.add('speaking');
-      } else {
-        studentAvatar.classList.add('speaking');
-      }
-    }
-    function stopSpeakingRole(role){
-      if(role==='teacher') teacherAvatar.classList.remove('speaking');
-      else studentAvatar.classList.remove('speaking');
-    }
-
     function showSlide(line){
-      // move bottom to top, new into bottom
       slideTopText.textContent = slideBottomText.textContent;
       slideBottomText.textContent = line.text;
     }
@@ -136,6 +213,8 @@ Student: Okay, I understand the basics now.</textarea>
     function speakLine(line){
       return new Promise((res)=>{
         const u = new SpeechSynthesisUtterance(line.text);
+        if(line.role==='teacher' && teacherVoice) u.voice = teacherVoice;
+        if(line.role==='student' && studentVoice) u.voice = studentVoice;
         u.rate = 1.0; u.pitch = line.role==='teacher'?1.0:1.05;
         u.onstart = ()=>{ startSpeakingRole(line.role); currentSpeaker.textContent = line.role==='teacher' ? 'Teacher:' : 'Student:'; currentDialogue.textContent = line.text; showSlide(line); };
         u.onend = ()=>{ stopSpeakingRole(line.role); setTimeout(res, 160); };
@@ -144,7 +223,6 @@ Student: Okay, I understand the basics now.</textarea>
     }
 
     async function playAll(){
-      // stop any previous
       if(speechSynthesis.speaking) speechSynthesis.cancel();
       const lines = parseDialogues();
       slideTopText.textContent = '(previous slide)';
@@ -158,16 +236,7 @@ Student: Okay, I understand the basics now.</textarea>
 
     playBtn.addEventListener('click', ()=>{ playAll(); });
 
-    // make sure toggle doesn't steal focus and hide play when minimized
-    const observer = new MutationObserver(()=>{
-      if(teachingArea.classList.contains('collapsed')){
-        playBtn.style.display = 'none';
-      } else {
-        playBtn.style.display = '';
-      }
-    });
-    observer.observe(teachingArea, {attributes:true,attributeFilter:['class']});
-
+    if(teachingArea.classList.contains('collapsed')) playBtn.style.display='none';
   </script>
 </body>
 </html>

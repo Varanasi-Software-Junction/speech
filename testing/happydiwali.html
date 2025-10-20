@@ -1,530 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Diwali</title>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: radial-gradient(circle at center, #ffcc80, #ff7043, #6d4c41);
-            overflow: hidden;
-            font-family: 'Poppins', sans-serif;
-            color: white;
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Diwali</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at center, #ffcc80, #ff7043, #6d4c41);
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      text-align: center;
+    }
 
-        h1 {
-            margin-top: 40px;
-            font-size: 3em;
-            color: gold;
-            text-shadow: 0 0 20px orange, 0 0 40px red;
-            animation: glow 2s infinite alternate;
-        }
+    h1 {
+      margin-top: 40px;
+      font-size: 3em;
+      color: gold;
+      text-shadow: 0 0 20px orange, 0 0 40px red;
+      animation: glow 2s infinite alternate;
+    }
 
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px orange;
-            }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px orange; }
+      to { text-shadow: 0 0 30px yellow, 0 0 60px red; }
+    }
 
-            to {
-                text-shadow: 0 0 30px yellow, 0 0 60px red;
-            }
-        }
+    .lamp {
+      position: absolute;
+      bottom: 0;
+      width: 80px;
+      height: 60px;
+      background: #6d4c41;
+      border-radius: 0 0 50% 50%;
+      box-shadow: 0 0 10px #3e2723 inset;
+      overflow: visible;
+      animation: flicker 1s infinite alternate;
+    }
 
-        .lamp {
-            position: absolute;
-            bottom: 0;
-            width: 80px;
-            height: 60px;
-            background: #6d4c41;
-            border-radius: 0 0 50% 50%;
-            box-shadow: 0 0 10px #3e2723 inset;
-            overflow: visible;
-            animation: flicker 1s infinite alternate;
-        }
+    .flame {
+      position: absolute;
+      top: -25px;
+      left: 35px;
+      width: 10px;
+      height: 25px;
+      background: radial-gradient(orange, yellow, white);
+      border-radius: 50%;
+      animation: flame 0.6s infinite alternate;
+    }
 
-        .flame {
-            position: absolute;
-            top: -25px;
-            left: 35px;
-            width: 10px;
-            height: 25px;
-            background: radial-gradient(orange, yellow, white);
-            border-radius: 50%;
-            animation: flame 0.6s infinite alternate;
-        }
+    @keyframes flame {
+      from { transform: scaleY(1); opacity: 0.9; }
+      to { transform: scaleY(1.2); opacity: 1; }
+    }
 
-        @keyframes flame {
-            from {
-                transform: scaleY(1);
-                opacity: 0.9;
-            }
+    @keyframes flicker {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
+    }
 
-            to {
-                transform: scaleY(1.2);
-                opacity: 1;
-            }
-        }
+    .lamp:nth-child(1) { left: 10%; }
+    .lamp:nth-child(2) { left: 30%; }
+    .lamp:nth-child(3) { left: 50%; }
+    .lamp:nth-child(4) { left: 70%; }
+    .lamp:nth-child(5) { left: 90%; }
 
-        @keyframes flicker {
-            from {
-                filter: brightness(1);
-            }
+    .rocket {
+      position: absolute;
+      width: 6px;
+      height: 30px;
+      background: linear-gradient(to top, red, yellow);
+      border-radius: 2px;
+      animation: fireRocket 5s linear infinite;
+    }
 
-            to {
-                filter: brightness(1.3);
-            }
-        }
+    .rocket::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: -4px;
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(orange, red);
+      border-radius: 50%;
+      animation: spark 0.2s infinite alternate;
+    }
 
-        .lamp:nth-child(1) {
-            left: 10%;
-        }
+    .trail {
+      position: absolute;
+      width: 2px;
+      height: 50px;
+      background: linear-gradient(to bottom, rgba(255,255,0,0.8), rgba(255,0,0,0));
+      opacity: 0.8;
+      animation: trailMove 5s linear infinite;
+    }
 
-        .lamp:nth-child(2) {
-            left: 30%;
-        }
+    @keyframes fireRocket {
+      0% { bottom: 0; opacity: 1; transform: translateX(0); }
+      70% { opacity: 1; }
+      100% { bottom: 100vh; opacity: 0; transform: translateX(50px); }
+    }
 
-        .lamp:nth-child(3) {
-            left: 50%;
-        }
+    @keyframes trailMove {
+      0% { bottom: 0; opacity: 1; }
+      100% { bottom: 100vh; opacity: 0; }
+    }
 
-        .lamp:nth-child(4) {
-            left: 70%;
-        }
+    @keyframes spark {
+      from { opacity: 0.7; transform: scale(1); }
+      to { opacity: 1; transform: scale(1.2); }
+    }
 
-        .lamp:nth-child(5) {
-            left: 90%;
-        }
+    .children {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      animation: bounce 2s infinite ease-in-out;
+      z-index: 3;
+    }
 
-        .rocket {
-            position: absolute;
-            width: 6px;
-            height: 30px;
-            background: linear-gradient(to top, red, yellow);
-            border-radius: 2px;
-            animation: fireRocket 5s linear infinite;
-        }
+    .child {
+      width: 80px;
+      height: 140px;
+      background: linear-gradient(to bottom, #ffb74d, #ff8a65);
+      border-radius: 40px;
+      position: relative;
+    }
 
-        .rocket::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: -4px;
-            width: 14px;
-            height: 14px;
-            background: radial-gradient(orange, red);
-            border-radius: 50%;
-            animation: spark 0.2s infinite alternate;
-        }
+    .child::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      background: #ffe0b2;
+      border-radius: 50%;
+    }
 
-        .trail {
-            position: absolute;
-            width: 2px;
-            height: 50px;
-            background: linear-gradient(to bottom, rgba(255, 255, 0, 0.8), rgba(255, 0, 0, 0));
-            opacity: 0.8;
-            animation: trailMove 5s linear infinite;
-        }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
 
-        @keyframes fireRocket {
-            0% {
-                bottom: 0;
-                opacity: 1;
-                transform: translateX(0);
-            }
+    .cracker {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: yellow;
+      border-radius: 50%;
+      opacity: 0;
+      animation: explode 2s infinite;
+    }
 
-            70% {
-                opacity: 1;
-            }
+    @keyframes explode {
+      0% { transform: scale(0); opacity: 1; }
+      50% { transform: scale(2); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
 
-            100% {
-                bottom: 100vh;
-                opacity: 0;
-                transform: translateX(50px);
-            }
-        }
+    .burst {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 0;
+      animation: burst 3s infinite ease-out;
+    }
 
-        @keyframes trailMove {
-            0% {
-                bottom: 0;
-                opacity: 1;
-            }
+    @keyframes burst {
+      0% { transform: scale(0); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
 
-            100% {
-                bottom: 100vh;
-                opacity: 0;
-            }
-        }
+    #countdown {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1.5em;
+      color: gold;
+      box-shadow: 0 0 10px orange;
+      animation: fade 1s infinite alternate;
+      z-index: 5;
+      display: none;
+    }
 
-        @keyframes spark {
-            from {
-                opacity: 0.7;
-                transform: scale(1);
-            }
+    #wishes {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      color: gold;
+      text-shadow: 0 0 15px orange, 0 0 30px red;
+      opacity: 0;
+      animation: appear 3s forwards;
+      z-index: 4;
+      display: none;
+    }
 
-            to {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-        }
+    @keyframes appear {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
 
-        .children {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            animation: bounce 2s infinite ease-in-out;
-            z-index: 3;
-        }
+    @keyframes fade {
+      from { opacity: 1; }
+      to { opacity: 0.6; }
+    }
 
-        .child {
-            width: 80px;
-            height: 140px;
-            background: linear-gradient(to bottom, #ffb74d, #ff8a65);
-            border-radius: 40px;
-            position: relative;
-        }
+    /* Floating mini diyas */
+    .mini-diya {
+      position: absolute;
+      bottom: -60px;
+      width: 40px;
+      height: 28px;
+      border-radius: 0 0 50% 50%;
+      background: #7a523e;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3) inset, 0 0 12px rgba(255,140,0,0.3);
+      z-index: 2;
+      animation: floatUp 12s linear infinite, sway 2s ease-in-out infinite alternate;
+    }
+    .mini-diya::before {
+      content: '';
+      position: absolute;
+      top: -20px; left: 17px;
+      width: 6px; height: 20px;
+      border-radius: 50% 50% 45% 45%;
+      background: radial-gradient(ellipse at center, #fff 0%, #ffd54f 50%, #ff9800 100%);
+      filter: blur(0.2px);
+      animation: tinyFlame 0.7s infinite alternate;
+      box-shadow: 0 0 10px rgba(255,165,0,0.8);
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-110vh); opacity: 0; }
+    }
+    @keyframes sway { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+    @keyframes tinyFlame { from { transform: scaleY(1); } to { transform: scaleY(1.2); } }
 
-        .child::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: 20px;
-            width: 40px;
-            height: 40px;
-            background: #ffe0b2;
-            border-radius: 50%;
-        }
+    /* Falling sparkles */
+    .sparkle {
+      position: fixed;
+      top: -10px;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 8px rgba(255,255,200,0.8);
+      z-index: 1;
+      animation-name: fall, twinkle;
+      animation-timing-function: linear, ease-in-out;
+      animation-iteration-count: infinite, infinite;
+    }
+    @keyframes fall { to { transform: translateY(110vh); } }
+    @keyframes twinkle { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .cracker {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: yellow;
-            border-radius: 50%;
-            opacity: 0;
-            animation: explode 2s infinite;
-        }
-
-        @keyframes explode {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(2);
-                opacity: 1;
-            }
-
-            100% {
-                transform: scale(3);
-                opacity: 0;
-            }
-        }
-
-        .burst {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            opacity: 0;
-            animation: burst 3s infinite ease-out;
-        }
-
-        @keyframes burst {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.5);
-                opacity: 1;
-            }
-
-            100% {
-                transform: scale(2.5);
-                opacity: 0;
-            }
-        }
-
-        #countdown {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 1.5em;
-            color: gold;
-            box-shadow: 0 0 10px orange;
-            animation: fade 1s infinite alternate;
-            z-index: 5;
-        }
-
-        #wishes {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2em;
-            color: gold;
-            text-shadow: 0 0 15px orange, 0 0 30px red;
-            opacity: 0;
-            animation: appear 3s forwards;
-            z-index: 4;
-        }
-
-        @keyframes appear {
-            0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.5);
-            }
-
-            50% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        @keyframes fade {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0.6;
-            }
-        }
-
-        /* Floating mini diyas */
-        .mini-diya {
-            position: absolute;
-            bottom: -60px;
-            width: 40px;
-            height: 28px;
-            border-radius: 0 0 50% 50%;
-            background: #7a523e;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) inset, 0 0 12px rgba(255, 140, 0, 0.3);
-            z-index: 2;
-            animation: floatUp 12s linear infinite, sway 2s ease-in-out infinite alternate;
-        }
-
-        .mini-diya::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 17px;
-            width: 6px;
-            height: 20px;
-            border-radius: 50% 50% 45% 45%;
-            background: radial-gradient(ellipse at center, #fff 0%, #ffd54f 50%, #ff9800 100%);
-            filter: blur(0.2px);
-            animation: tinyFlame 0.7s infinite alternate;
-            box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
-        }
-
-        @keyframes floatUp {
-            0% {
-                transform: translateY(0);
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            90% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(-110vh);
-                opacity: 0;
-            }
-        }
-
-        @keyframes sway {
-            from {
-                transform: translateX(-3px);
-            }
-
-            to {
-                transform: translateX(3px);
-            }
-        }
-
-        @keyframes tinyFlame {
-            from {
-                transform: scaleY(1);
-            }
-
-            to {
-                transform: scaleY(1.2);
-            }
-        }
-
-        /* Falling sparkles */
-        .sparkle {
-            position: fixed;
-            top: -10px;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 8px rgba(255, 255, 200, 0.8);
-            z-index: 1;
-            animation-name: fall, twinkle;
-            animation-timing-function: linear, ease-in-out;
-            animation-iteration-count: infinite, infinite;
-        }
-
-        @keyframes fall {
-            to {
-                transform: translateY(110vh);
-            }
-        }
-
-        @keyframes twinkle {
-
-            0%,
-            100% {
-                opacity: 0.2;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-    </style>
+    /* Autoplay overlay */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #overlay button {
+      background: gold;
+      color: #3b2f2f;
+      border: none;
+      padding: 14px 22px;
+      font-size: 1.1rem;
+      border-radius: 999px;
+      box-shadow: 0 8px 30px rgba(255,165,0,0.5);
+      cursor: pointer;
+    }
+    #overlay p { color: #fff; font-size: .95rem; margin-top: 10px; text-align:center; }
+  </style>
 </head>
-
 <body>
-    <h1>🪔 Happy Diwali 🪔</h1>
-    <div id="countdown">Music starts in 5...</div>
-    <div id="wishes" style="display:none;">✨ May your life be filled with light, love, and joy! ✨</div>
-    <!-- Ground diyas -->
-    <div class="lamp">
-        <div class="flame"></div>
-    </div>
-    <div class="lamp">
-        <div class="flame"></div>
-    </div>
-    <div class="lamp">
-        <div class="flame"></div>
-    </div>
-    <div class="lamp">
-        <div class="flame"></div>
-    </div>
-    <div class="lamp">
-        <div class="flame"></div>
-    </div>
-    <div class="children">
-        <div class="child"></div>
-        <div class="child"></div>
-    </div> <!-- Rockets with trails -->
-    <div class="trail" style="left: 20%; animation-delay: 1s;"></div>
-    <div class="trail" style="left: 60%; animation-delay: 2s;"></div>
-    <div class="trail" style="left: 80%; animation-delay: 3s;"></div>
-    <div class="rocket" style="left: 20%; animation-delay: 1s;"></div>
-    <div class="rocket" style="left: 60%; animation-delay: 2s;"></div>
-    <div class="rocket" style="left: 80%; animation-delay: 3s;"></div> <!-- Crackers & bursts -->
-    <div class="cracker" style="top: 20%; left: 30%; animation-delay: 1s; background: red;"></div>
-    <div class="cracker" style="top: 25%; left: 50%; animation-delay: 1.5s; background: blue;"></div>
-    <div class="cracker" style="top: 15%; left: 70%; animation-delay: 2s; background: gold;"></div>
-    <div class="cracker" style="top: 30%; left: 40%; animation-delay: 2.5s; background: lime;"></div>
-    <div class="cracker" style="top: 18%; left: 60%; animation-delay: 3s; background: pink;"></div>
-    <div class="burst" style="top: 10%; left: 40%; background: gold; animation-delay: 1.5s;"></div>
-    <div class="burst" style="top: 12%; left: 65%; background: orange; animation-delay: 2s;"></div>
-    <div class="burst" style="top: 8%; left: 55%; background: cyan; animation-delay: 2.5s;"></div>
-    <div class="burst" style="top: 14%; left: 75%; background: magenta; animation-delay: 3s;"></div> <!-- Audio -->
-    <audio id="introMusic">
-        <source
-            src="https://cdn.pixabay.com/download/audio/2023/11/06/audio_b83c0585a3.mp3?filename=happy-diwali-celebration-157368.mp3"
-            type="audio/mpeg">
-    </audio>
-    <audio id="fireworks" loop>
-        <source
-            src="https://cdn.pixabay.com/download/audio/2022/03/09/audio_d8c5d632e2.mp3?filename=diwali-fireworks-118515.mp3"
-            type="audio/mpeg">
-    </audio>
-    <script>
-        const introMusic = document.getElementById('introMusic');
-        const fireworks = document.getElementById('fireworks');
-        const countdown = document.getElementById('countdown');
-        const wishes = document.getElementById('wishes');
+  <h1>🪔 Happy Diwali 🪔</h1>
+  <div id="countdown">Music starts in 5...</div>
+  <div id="wishes">✨ May your life be filled with light, love, and joy! ✨</div>
 
-        // Autostart after 5s
-        let timeLeft = 5;
-        const timer = setInterval(() => {
-            timeLeft--;
-            countdown.textContent = `Music starts in ${timeLeft}...`;
-            if (timeLeft === 0) {
-                clearInterval(timer);
-                countdown.remove();
-                introMusic.play();
-                fireworks.play();
-                wishes.style.display = 'block';
+  <!-- Ground diyas -->
+  <div class="lamp"><div class="flame"></div></div>
+  <div class="lamp"><div class="flame"></div></div>
+  <div class="lamp"><div class="flame"></div></div>
+  <div class="lamp"><div class="flame"></div></div>
+  <div class="lamp"><div class="flame"></div></div>
+
+  <div class="children">
+    <div class="child"></div>
+    <div class="child"></div>
+  </div>
+
+  <!-- Rockets with trails -->
+  <div class="trail" style="left: 20%; animation-delay: 1s;"></div>
+  <div class="trail" style="left: 60%; animation-delay: 2s;"></div>
+  <div class="trail" style="left: 80%; animation-delay: 3s;"></div>
+
+  <div class="rocket" style="left: 20%; animation-delay: 1s;"></div>
+  <div class="rocket" style="left: 60%; animation-delay: 2s;"></div>
+  <div class="rocket" style="left: 80%; animation-delay: 3s;"></div>
+
+  <!-- Crackers & bursts -->
+  <div class="cracker" style="top: 20%; left: 30%; animation-delay: 1s; background: red;"></div>
+  <div class="cracker" style="top: 25%; left: 50%; animation-delay: 1.5s; background: blue;"></div>
+  <div class="cracker" style="top: 15%; left: 70%; animation-delay: 2s; background: gold;"></div>
+  <div class="cracker" style="top: 30%; left: 40%; animation-delay: 2.5s; background: lime;"></div>
+  <div class="cracker" style="top: 18%; left: 60%; animation-delay: 3s; background: pink;"></div>
+
+  <div class="burst" style="top: 10%; left: 40%; background: gold; animation-delay: 1.5s;"></div>
+  <div class="burst" style="top: 12%; left: 65%; background: orange; animation-delay: 2s;"></div>
+  <div class="burst" style="top: 8%; left: 55%; background: cyan; animation-delay: 2.5s;"></div>
+  <div class="burst" style="top: 14%; left: 75%; background: magenta; animation-delay: 3s;"></div>
+
+  <!-- Audio -->
+<!-- Intro music: swap to FreePD (public domain, direct MP3) -->
+<audio id="introMusic" preload="auto" crossorigin="anonymous">
+  <source src="https://freepd.com/music/Adding%20the%20Sun.mp3" type="audio/mpeg">
+  <!-- Fallback option -->
+  <source src="https://freepd.com/music/Improved%20Ice%20Cream%20Truck.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Fireworks SFX: swap to Wikimedia Commons (public domain, hotlink-friendly) -->
+<audio id="fireworks" loop preload="auto" crossorigin="anonymous">
+  <source src="https://upload.wikimedia.org/wikipedia/commons/7/71/Fireworks.ogg" type="audio/ogg">
+</audio>
+
+  <!-- Autoplay overlay (user gesture requirement) -->
+  <div id="overlay">
+    <div>
+      <button id="startBtn">Tap to Start Celebration 🎉</button>
+      <p>(Audio will begin after a 5‑second countdown)</p>
+    </div>
+  </div>
+
+  <script>
+    const introMusic = document.getElementById('introMusic');
+    const fireworks = document.getElementById('fireworks');
+    const countdown = document.getElementById('countdown');
+    const wishes = document.getElementById('wishes');
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('startBtn');
+
+    // Warm-up (muted) so buffering is ready; then we'll unmute after user gesture
+    try {
+      introMusic.muted = true;
+      fireworks.muted = true;
+      introMusic.play().catch(()=>{});
+      fireworks.play().catch(()=>{});
+      introMusic.pause();
+      fireworks.pause();
+    } catch(e) {}
+
+    function startCountdownAndPlay(){
+      overlay.style.display = 'none';
+      countdown.style.display = 'block';
+      wishes.style.display = 'none';
+
+      let timeLeft = 5;
+      countdown.textContent = `Music starts in ${timeLeft}...`;
+      const timer = setInterval(() => {
+        timeLeft--;
+        countdown.textContent = `Music starts in ${timeLeft}...`;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          countdown.remove();
+          wishes.style.display = 'block';
+          introMusic.muted = false;
+          fireworks.muted = false;
+          Promise.allSettled([introMusic.play(), fireworks.play()]).then(results => {
+            const failed = results.some(r => r.status === 'rejected');
+            if (failed) {
+              overlay.style.display = 'flex';
             }
-        }, 1000);
+          });
+        }
+      }, 1000);
+    }
 
-        // Create falling sparkles
-        const createSparkles = (count = 60) => {
-            for (let i = 0; i < count; i++) {
-                const s = document.createElement('div');
-                s.className = 'sparkle';
-                const left = Math.random() * 100; // vw
-                const delay = Math.random() * 5;  // s
-                const duration = 6 + Math.random() * 6; // 6-12s
-                s.style.left = left + 'vw';
-                s.style.animationDuration = duration + 's, 1.5s';
-                s.style.animationDelay = delay + 's, ' + (delay / 2).toFixed(2) + 's';
-                document.body.appendChild(s);
-            }
-        };
+    startBtn.addEventListener('click', startCountdownAndPlay);
+    ['keydown','pointerdown','touchstart'].forEach(evt => {
+      document.addEventListener(evt, function once(){
+        document.removeEventListener(evt, once, {capture:false});
+        if (overlay.style.display !== 'none') startCountdownAndPlay();
+      }, {passive:true});
+    });
 
-        // Create floating diyas
-        const createMiniDiyas = (count = 10) => {
-            for (let i = 0; i < count; i++) {
-                const d = document.createElement('div');
-                d.className = 'mini-diya';
-                const left = 5 + Math.random() * 90; // vw
-                const delay = Math.random() * 8; // s
-                const duration = 10 + Math.random() * 8; // 10-18s
-                d.style.left = left + 'vw';
-                d.style.animationDelay = delay + 's, ' + (Math.random() * 1.5).toFixed(2) + 's';
-                d.style.animationDuration = duration + 's, 2s';
-                document.body.appendChild(d);
-            }
-        };
+    // Sparkles & floating diyas
+    const createSparkles = (count = 70) => {
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('div');
+        s.className = 'sparkle';
+        const left = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = 6 + Math.random() * 6;
+        s.style.left = left + 'vw';
+        s.style.animationDuration = duration + 's, 1.5s';
+        s.style.animationDelay = delay + 's, ' + (delay/2).toFixed(2) + 's';
+        document.body.appendChild(s);
+      }
+    };
 
-        createSparkles(70);
-        createMiniDiyas(12);
-    </script>
+    const createMiniDiyas = (count = 12) => {
+      for (let i = 0; i < count; i++) {
+        const d = document.createElement('div');
+        d.className = 'mini-diya';
+        const left = 5 + Math.random() * 90;
+        const delay = Math.random() * 8;
+        const duration = 10 + Math.random() * 8;
+        d.style.left = left + 'vw';
+        d.style.animationDelay = delay + 's, ' + (Math.random()*1.5).toFixed(2) + 's';
+        d.style.animationDuration = duration + 's, 2s';
+        document.body.appendChild(d);
+      }
+    };
+
+    createSparkles(70);
+    createMiniDiyas(12);
+  </script>
 </body>
-
 </html>

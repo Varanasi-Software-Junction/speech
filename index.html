@@ -1,264 +1,287 @@
- <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Synthetic Speak — Interactive Teaching System</title>
-  <style>
-    :root{ --bg:#f6f8fb; --accent-blue:#0b78d1; --accent-orange:#f97316; --shadow:0 6px 18px rgba(0,0,0,0.08) }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial,sans-serif}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Binary Search — Synthetic Speak Demo (Dashboard)</title>
+<style>
+  :root{--blue:#0b78d1;--orange:#f97316}
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:#f6f8fb;margin:0;padding:0;color:#0b1220}
+  header{background:#fff;padding:10px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:200}
+  .brand{font-weight:800;font-size:16px;color:var(--blue)}
+  .icon-btn{background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--blue);font-size:20px;line-height:1}
 
-    /* Main teaching area */
-    .teaching-area{position:fixed;top:16px;left:50%;transform:translateX(-50%);margin:0 auto;padding:18px;width:92%;max-width:920px;background:rgba(255,255,255,0.9);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:999;border:2px solid var(--accent-blue);transition:all 0.35s ease}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;padding:14px}
+  .panel{background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
 
-    /* Collapsed state: move to top-right */
-    .teaching-area.collapsed{left:auto;right:16px;top:12px;transform:none;width:240px;padding:10px;border-radius:10px;opacity:1}
-    /* when collapsed hide large elements */
-    .teaching-area.collapsed .slides-container,
-    .teaching-area.collapsed .dialogue-box{display:none}
-    .teaching-area.collapsed .avatars{justify-content:flex-end}
-    .teaching-area.collapsed .avatar-label{display:none}
+  .avatars{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .avatar{width:110px;height:110px;border-radius:50%;overflow:hidden}
 
-    /* toggle button */
-    .toggle-btn{position:absolute;top:8px;right:10px;padding:6px 10px;background:var(--accent-blue);color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.18);z-index:1000}
+  .slide{position:relative;margin:10px auto;width:100%;height:140px;background:#eef6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600;padding:12px}
+  .slide.teacher{background:linear-gradient(90deg, rgba(11,120,209,0.06), rgba(255,255,255,0));border:1px solid rgba(11,120,209,0.12)}
+  .slide.student{background:linear-gradient(90deg, rgba(249,115,22,0.06), rgba(255,255,255,0));border:1px solid rgba(249,115,22,0.12)}
+  .slide-badge{position:absolute;top:8px;right:12px;padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px;color:white}
+  .slide-badge.teacher{background:var(--blue)}
+  .slide-badge.student{background:var(--orange)}
 
-    /* Play button inside teaching area */
-    #playBtn{padding:10px 16px;font-size:15px;font-weight:700;background:var(--accent-blue);color:#fff;border:0;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(11,120,209,0.16)}
+  .dialogue-box{background:#fff;border-radius:10px;padding:14px;margin-top:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+  .status{font-size:13px;color:#475569;margin-bottom:8px}
 
-    .avatars{width:100%;display:flex;justify-content:space-between;align-items:center}
-    .avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:140px}
-    .avatar-svg{width:110px;height:110px;border-radius:50%;display:block}
-    .avatar-label{font-weight:700;color:#0b1220;margin-top:6px;text-align:center}
-    .avatar.speaking svg .mouth{animation:mouthMovement 220ms infinite}
+  footer.controls{display:flex;justify-content:center;gap:10px;padding:12px}
+  .btn{padding:10px 14px;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer}
+  .primary{background:var(--blue)}
+  .warn{background:var(--orange)}
+  .success{background:#059669}
+  .danger{background:#ef4444}
 
-    @keyframes mouthMovement{
-      0% { transform: scaleY(0.7); }
-      50% { transform: scaleY(1.25); }
-      100% { transform: scaleY(0.8); }
-    }
+  /* drawer uses display block / none per request */
+  .drawer{display:none;position:fixed;top:0;left:0;width:340px;height:100vh;background:#fff;box-shadow:4px 0 24px rgba(2,6,23,0.12);z-index:210;padding:18px;overflow:auto}
+  .drawer.open{display:block}
 
-    .slides-container{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
-    .slide-column{width:92%;max-width:420px;height:140px;border-radius:10px;background:#fff;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden}
-    .slide-text{padding:12px;font-weight:600;color:#0b1220;text-align:center}
+  .drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(3,7,18,0.35);z-index:205}
+  .drawer-backdrop.open{display:block}
 
-    .dialogue-box{font-size:16px;font-weight:500;color:#0b1220;background:white;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:10px 12px;width:92%;max-width:760px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .dialogue-speaker{font-weight:700;color:var(--accent-blue);min-width:90px}
+  .mini-widget{position:fixed;top:12px;right:12px;width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#60a5fa);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;box-shadow:0 6px 20px rgba(2,6,23,0.18);z-index:200;visibility:hidden;opacity:0;transform:translateY(-6px);transition:all .18s ease}
+  .mini-widget.show{visibility:visible;opacity:1;transform:translateY(0)}
 
-    textarea{display:none}
+  .history{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
 
-    @media (max-width:600px){
-      .teaching-area{width:96%;padding:12px}
-      .avatar-svg{width:84px;height:84px}
-      .avatar-wrap{width:100px}
-      #playBtn{padding:8px 12px;font-size:14px}
-      .slide-column{height:110px}
-    }
-  </style>
+  textarea.json-input{width:100%;height:180px;padding:12px;border-radius:8px;border:1px solid #eef6ff;font-family:monospace}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <div id="teachingarea" class="teaching-area">
-    <button id="toggleBtn" class="toggle-btn">Collapse</button>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button id="openDrawerBtn" class="icon-btn" title="Open drawer" aria-label="Open drawer">☰</button>
+    <div class="brand">Binary Search — Synthetic Speak Demo</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button id="collapseBtn" class="icon-btn" title="Collapse to mini" aria-label="Collapse to mini">⬇︎</button>
+  </div>
+</header>
 
+<!-- Drawer + backdrop -->
+<aside class="drawer" id="drawer">
+  <h3>Voice Controls</h3>
+  <p style="color:#475569">Choose voices and rates for teacher & student.</p>
+  <label style="display:block;margin-top:8px">Teacher Voice
+    <select id="teacherVoiceSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
+  </label>
+  <label style="display:block;margin-top:8px">Teacher Rate
+    <input id="teacherRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
+  </label>
+  <hr style="margin:12px 0" />
+  <label style="display:block;margin-top:8px">Student Voice
+    <select id="studentVoiceSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
+  </label>
+  <label style="display:block;margin-top:8px">Student Rate
+    <input id="studentRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
+  </label>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="drawerCloseBtn" class="btn primary">Done</button>
+    <button id="resetVoicesBtn" class="btn" style="background:#eef6ff;color:var(--blue)">Reset</button>
+  </div>
+</aside>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<div class="mini-widget" id="miniWidget"><button id="restoreBtn" style="background:transparent;border:0;color:white;cursor:pointer" aria-label="Restore">⇪</button></div>
+
+<div class="layout">
+  <div class="panel" id="mainPanel">
     <div class="avatars">
-      <div class="avatar-wrap">
-        <!-- teacher SVG with mouth group -->
-        <svg id="teacherAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="tGrad" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
-          </defs>
-          <rect width="120" height="120" rx="60" fill="url(#tGrad)"/>
-          <circle cx="60" cy="38" r="18" fill="#fff"/>
-          <g id="teacherMouth" class="mouth" transform="translate(60,65)">
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220"/>
-          </g>
-        </svg>
-        <div class="avatar-label">Teacher</div>
-      </div>
-
-      <div style="flex:1"></div>
-
-      <div class="avatar-wrap">
-        <!-- student SVG with mouth group -->
-        <svg id="studentAvatar" class="avatar avatar-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sGrad" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
-          </defs>
-          <rect width="120" height="120" rx="60" fill="url(#sGrad)"/>
-          <circle cx="60" cy="38" r="18" fill="#fff"/>
-          <g id="studentMouth" class="mouth" transform="translate(60,65)">
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4"/>
-          </g>
-        </svg>
-        <div class="avatar-label">Student</div>
-      </div>
+      <svg id="teacherAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tGrad" x1="0" x2="1"><stop offset="0" stop-color="#0b78d1"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#tGrad)"/><circle cx="60" cy="38" r="18" fill="#fff"/><g class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220"/></g></svg>
+      <svg id="studentAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sGrad" x1="0" x2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs><rect width="120" height="120" rx="60" fill="url(#sGrad)"/><circle cx="60" cy="38" r="18" fill="#fff"/><g class="mouth" transform="translate(60,65)"><ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4"/></g></svg>
     </div>
 
-    <div class="slides-container">
-      <div class="slide-column" id="slideTop"><div class="slide-text" id="slideTopText">(previous slide)</div></div>
-      <div class="slide-column" id="slideBottom"><div class="slide-text" id="slideBottomText">(current slide)</div></div>
+    <div class="slide" id="slideTop"><div id="slideTopText"></div><div class="slide-badge" id="slideTopBadge"></div></div>
+    <div class="slide" id="slideBottom"><div id="slideBottomText"></div><div class="slide-badge" id="slideBottomBadge"></div></div>
+
+    <div class="dialogue-box">
+      <div id="jsonStatus" class="status">JSON status: OK</div>
+      <div id="currentSpeaker" style="font-weight:700"></div>
+      <div id="currentDialogue">Click Play to begin the Binary Search demo.</div>
     </div>
 
-    <div style="display:flex;gap:12px;align-items:center;width:92%;max-width:760px;justify-content:space-between">
-      <div class="dialogue-box" style="flex:1"><div id="currentSpeaker" class="dialogue-speaker"></div><div id="currentDialogue">Click Play to start</div></div>
-      <button id="playBtn">Play</button>
+    <div style="margin-top:12px">
+      <label style="display:block;margin-bottom:6px">Dialogues JSON (editable):</label>
+      <textarea id="dialoguesText" class="json-input">[
+  {"role":"teacher","text":"Welcome to the Binary Search demo! Today we’ll learn how computers search efficiently in sorted data."},
+  {"role":"student","text":"Sounds interesting! How does binary search work?"},
+  {"role":"teacher","text":"Binary Search divides the search range by half each time. Imagine you’re looking for number 45 in a sorted array."},
+  {"role":"student","text":"So the array is sorted, right? Like [10, 20, 30, 40, 45, 50, 60]?"},
+  {"role":"teacher","text":"Exactly! First, we check the middle element. If it's less than 45, we search the right half; otherwise, the left."},
+  {"role":"student","text":"So that means we reduce the search space by half every step!"},
+  {"role":"teacher","text":"Yes! That’s why Binary Search has a time complexity of O(log n)."},
+  {"role":"student","text":"Wow, that’s much faster than linear search!"},
+  {"role":"teacher","text":"Correct. Let’s see it visually — suppose we start with [10, 20, 30, 40, 45, 50, 60]. The middle element is 40."},
+  {"role":"student","text":"40 is less than 45, so we now check [45, 50, 60]."},
+  {"role":"teacher","text":"Perfect! The new middle is 50, which is greater than 45. We go left and find 45!"},
+  {"role":"student","text":"That’s efficient! So Binary Search stops as soon as it finds the target."},
+  {"role":"teacher","text":"Exactly. And if it doesn’t find it, it stops when the range becomes empty."},
+  {"role":"student","text":"Makes sense. Thanks for explaining with the example!"},
+  {"role":"teacher","text":"You’re welcome! Practice writing it in code next — it’s fun and fast!"}
+]</textarea>
     </div>
 
+    <footer class="controls">
+      <button id="playBtn" class="btn primary">Play</button>
+      <button id="pauseBtn" class="btn warn">Pause</button>
+      <button id="resumeBtn" class="btn success">Resume</button>
+      <button id="stopBtn" class="btn danger">Stop</button>
+    </footer>
   </div>
 
-  <textarea id="dialoguesText">
+  <aside class="panel" id="rightPanel">
+    <h4 style="margin-top:0">Activity Log</h4>
+    <div id="history" class="history">(no activity yet)</div>
+  </aside>
+</div>
 
-Teacher: Alright, let’s build your first Flutter app—a classic "Hello World"! First, we need to set up your development environment. Have you installed Flutter and an IDE like Visual Studio Code or Android Studio?
+<script>
+// DOM
+const openDrawerBtn = document.getElementById('openDrawerBtn');
+const drawer = document.getElementById('drawer');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+const resetVoicesBtn = document.getElementById('resetVoicesBtn');
+const collapseBtn = document.getElementById('collapseBtn');
+const miniWidget = document.getElementById('miniWidget');
+const restoreBtn = document.getElementById('restoreBtn');
+const teacherVoiceSelect = document.getElementById('teacherVoiceSelect');
+const studentVoiceSelect = document.getElementById('studentVoiceSelect');
+const teacherRate = document.getElementById('teacherRate');
+const studentRate = document.getElementById('studentRate');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
+const stopBtn = document.getElementById('stopBtn');
+const slideTopText = document.getElementById('slideTopText');
+const slideBottomText = document.getElementById('slideBottomText');
+const slideTopBadge = document.getElementById('slideTopBadge');
+const slideBottomBadge = document.getElementById('slideBottomBadge');
+const slideTopThumb = document.getElementById('slideTopThumb');
+const slideBottomThumb = document.getElementById('slideBottomThumb');
+const historyEl = document.getElementById('history');
+const currentSpeaker = document.getElementById('currentSpeaker');
+const currentDialogue = document.getElementById('currentDialogue');
+const teacherAvatar = document.getElementById('teacherAvatar');
+const studentAvatar = document.getElementById('studentAvatar');
+const dialoguesText = document.getElementById('dialoguesText');
+const jsonStatus = document.getElementById('jsonStatus');
 
-Student: I’ve got Visual Studio Code installed, but I haven’t set up Flutter yet.
+// Drawer handlers - improved toggle and accessibility
+function toggleDrawer(open){
+  if(open){ drawer.classList.add('open'); drawerBackdrop.classList.add('open');
+           // ensure voices are populated when opening
+           populateVoices();
+           // focus first select for keyboard users
+           setTimeout(()=>{ if(teacherVoiceSelect) teacherVoiceSelect.focus(); }, 120);
+  } else { drawer.classList.remove('open'); drawerBackdrop.classList.remove('open'); }
+}
+openDrawerBtn.addEventListener('click', ()=>toggleDrawer(true));
+drawerBackdrop.addEventListener('click', ()=>toggleDrawer(false));
+if(drawerCloseBtn) drawerCloseBtn.addEventListener('click', ()=>toggleDrawer(false));
+if(resetVoicesBtn) resetVoicesBtn.addEventListener('click', ()=>{teacherVoiceSelect.selectedIndex=0;studentVoiceSelect.selectedIndex=1;teacherRate.value=1;studentRate.value=1;populateVoices();});
+// close with Escape key
+window.addEventListener('keydown',(e)=>{ if(e.key === 'Escape') toggleDrawer(false); });
 
-Teacher: No problem! Go to the Flutter website and download the Flutter SDK for your operating system. Extract the zip file to a folder like `C:\flutter` on Windows or `~/flutter` on macOS/Linux. Then, add the Flutter bin directory to your system’s PATH. Want me to walk you through it?
+// Collapse / restore
+collapseBtn.addEventListener('click', ()=>{document.querySelector('.layout').style.display='none';miniWidget.classList.add('show');});
+restoreBtn.addEventListener('click', ()=>{document.querySelector('.layout').style.display='grid';miniWidget.classList.remove('show');});
 
-Student: Yes, please!
+// thumbs (visuals)
+const thumbs=[];for(let i=0;i<8;i++) thumbs.push(`<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='80' rx='8' fill='hsl(${i*40},80%,90%)'/><circle cx='36' cy='40' r='18' fill='hsl(${i*40},60%,50%)'/></svg>`);
+let tIndex=0; function nextThumb(){return thumbs[tIndex++%thumbs.length];}
+// make sure slide thumbs elements exist before using (some versions don't render thumb elements)
+if(slideTopThumb) slideTopThumb.innerHTML = nextThumb();
+if(slideBottomThumb) slideBottomThumb.innerHTML = nextThumb();
 
-Teacher: Okay, after extracting, open your terminal and run `flutter doctor` to check if everything’s set up correctly. It’ll tell you if you’re missing anything, like the Android SDK or an emulator.
+// voice population
+let voices = [];
+function populateVoices(){voices = speechSynthesis.getVoices(); teacherVoiceSelect.innerHTML=''; studentVoiceSelect.innerHTML='';
+  voices.forEach(v=>{const o1=new Option(`${v.name} — ${v.lang}`, v.name); const o2=new Option(`${v.name} — ${v.lang}`, v.name); teacherVoiceSelect.appendChild(o1); studentVoiceSelect.appendChild(o2);});
+  if(voices.length){ teacherVoiceSelect.value = voices[0].name; studentVoiceSelect.value = voices[Math.min(1,voices.length-1)].name; }
+}
+speechSynthesis.onvoiceschanged = populateVoices; setTimeout(populateVoices,300);
 
-
-Teacher: Great job setting up Flutter! Now, let’s create a new Flutter project. Open your terminal, navigate to a folder where you want your project, and type: `flutter create hello_world`. This will generate a new Flutter app called "hello_world".
-
-Student: Got it! I ran the command, and it created a bunch of files. What now?
-
-Teacher: Navigate into the project folder with `cd hello_world`, then open it in VS Code by typing `code .`. You’ll see a folder structure with a `lib` folder containing `main.dart`. That’s where we’ll write our code.
-
-Student: Okay, I’m in VS Code, and I see `main.dart`. It’s got a lot of code already!
-
-Teacher: That’s Flutter’s default template. It’s a simple counter app, but we’ll replace it with a basic "Hello World" display. Let’s move to editing the code next.
-
-Teacher: Let’s simplify `main.dart` to display "Hello World". Replace all the code in `main.dart` with this:
- 
-
-
-</textarea>
-
-  <script>
-    const toggleBtn = document.getElementById('toggleBtn');
-    const teachingArea = document.getElementById('teachingarea');
-    const playBtn = document.getElementById('playBtn');
-    const teacherAvatar = document.getElementById('teacherAvatar');
-    const studentAvatar = document.getElementById('studentAvatar');
-    const slideTopText = document.getElementById('slideTopText');
-    const slideBottomText = document.getElementById('slideBottomText');
-    const currentSpeaker = document.getElementById('currentSpeaker');
-    const currentDialogue = document.getElementById('currentDialogue');
-    const teacherMouth = document.getElementById('teacherMouth');
-    const studentMouth = document.getElementById('studentMouth');
-
-    let collapsed = false;
-    toggleBtn.addEventListener('click', ()=>{
-      collapsed = !collapsed;
-      teachingArea.classList.toggle('collapsed', collapsed);
-      toggleBtn.textContent = collapsed ? 'Restore' : 'Collapse';
-      // hide play button in collapsed state
-      if(collapsed) playBtn.style.display = 'none'; else playBtn.style.display='';
-    });
-
-    // Speech voices
-    let voices = [];
-    let teacherVoice = null;
-    let studentVoice = null;
-
-    function pickVoices(){
-      voices = speechSynthesis.getVoices();
-      if(!voices || voices.length===0) return;
-      // pick a teacher voice (prefer en-US) and a distinct student voice if possible
-      teacherVoice = voices.find(v=>/en-US/i.test(v.lang)) || voices[0];
-      // pick a different voice for student if available
-      studentVoice = voices.find(v=>v.name !== (teacherVoice && teacherVoice.name) && /en/i.test(v.lang)) || voices.find(v=>v.name !== (teacherVoice && teacherVoice.name)) || voices[1] || voices[0];
-      if(!studentVoice) studentVoice = teacherVoice;
-      console.log('Voices selected', teacherVoice && teacherVoice.name, studentVoice && studentVoice.name);
+function parseDialogues(){
+  const raw = dialoguesText.value.trim(); if(!raw) return [];
+  try{
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed) && parsed.every(it=>it.role && it.text)){
+      jsonStatus.textContent = 'JSON status: OK';
+      return parsed.map(it=>({role:String(it.role).toLowerCase(), text:String(it.text)}));
+    } else {
+      jsonStatus.textContent = 'JSON status: Invalid structure — expected [{role:,text:}, ...]';
+      return [];
     }
+  }catch(e){
+    jsonStatus.textContent = 'JSON status: parse error — check JSON';
+    return [];
+  }
+}
 
-    // some browsers load voices asynchronously
-    window.speechSynthesis.onvoiceschanged = pickVoices;
-    setTimeout(pickVoices, 250);
+function pushSlide(line){
+  // move bottom to top
+  slideTopText.innerHTML = slideBottomText.innerHTML;
+  slideTopBadge.className = slideBottomBadge.className; slideTopBadge.textContent = slideBottomBadge.textContent;
+  // set bottom
+  slideBottomText.innerHTML = line.text;
+  slideBottomBadge.className = 'slide-badge ' + (line.role==='teacher' ? 'teacher' : 'student');
+  slideBottomBadge.textContent = line.role==='teacher' ? 'Teacher' : 'Student';
+  // record to activity log
+  const row = document.createElement('div'); row.textContent = `${line.role.toUpperCase()}: ${line.text}`; historyEl.prepend(row);
+}
 
-    // mouth animation loop per role
-    const mouthState = {teacher:{running:false,raf:0}, student:{running:false,raf:0}};
-    function animateMouth(role){
-      const state = mouthState[role];
-      const mouth = role==='teacher' ? teacherMouth : studentMouth;
-      if(!mouth) return;
-      let last = performance.now();
-      function loop(now){
-        last = now;
-        const t = now/120 + (role==='teacher'?0:1.2);
-        const sy = 0.8 + Math.abs(Math.sin(t)) * 0.8; // 0.8 - 1.6
-        mouth.style.transform = `translate(60px,65px) scaleY(${sy.toFixed(3)})`;
-        state.raf = requestAnimationFrame(loop);
-      }
-      if(!state.running){ state.running = true; state.raf = requestAnimationFrame(loop); }
-    }
-    function stopMouth(role){
-      const state = mouthState[role];
-      const mouth = role==='teacher' ? teacherMouth : studentMouth;
-      if(state.raf) cancelAnimationFrame(state.raf);
-      state.running = false; state.raf = 0;
-      if(mouth) mouth.style.transform = 'translate(60px,65px) scaleY(1)';
-    }
+function animateMouth(avatar){
+  const mouth = avatar.querySelector('.mouth ellipse');
+  let s = 1;
+  return setInterval(()=>{ s = s===1?1.3:1; mouth.setAttribute('transform', `scale(1,${s})`); }, 200);
+}
 
-    function startSpeakingRole(role){
-      if(role==='teacher'){
-        teacherAvatar.classList.add('speaking');
-        animateMouth('teacher');
-      } else {
-        studentAvatar.classList.add('speaking');
-        animateMouth('student');
-      }
-    }
-    function stopSpeakingRole(role){
-      if(role==='teacher'){
-        teacherAvatar.classList.remove('speaking');
-        stopMouth('teacher');
-      } else {
-        studentAvatar.classList.remove('speaking');
-        stopMouth('student');
-      }
-    }
+function speakLine(line){
+  return new Promise(res=>{
+    const u = new SpeechSynthesisUtterance(line.text);
+    // select voice based on drawer selection if available
+    const vName = (line.role==='teacher') ? teacherVoiceSelect.value : studentVoiceSelect.value;
+    const v = voices.find(x=>x.name===vName) || voices.find(x=>/en/i.test(x.lang));
+    if(v) u.voice = v;
+    u.rate = (line.role==='teacher') ? parseFloat(teacherRate.value) : parseFloat(studentRate.value);
+    let anim;
+    u.onstart = ()=>{
+      currentSpeaker.textContent = line.role==='teacher' ? 'Teacher:' : 'Student:';
+      currentDialogue.textContent = line.text;
+      pushSlide(line);
+      const avatar = (line.role==='teacher') ? teacherAvatar : studentAvatar;
+      anim = animateMouth(avatar);
+    };
+    u.onend = ()=>{
+      clearInterval(anim);
+      const avatar = (line.role==='teacher') ? teacherAvatar : studentAvatar;
+      avatar.querySelector('.mouth ellipse').setAttribute('transform','scale(1,1)');
+      setTimeout(res,120);
+    };
+    speechSynthesis.speak(u);
+  });
+}
 
-    function parseDialogues(){
-      return document.getElementById('dialoguesText').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
-        const m = l.match(/^(Teacher|Student):\s*(.*)/i);
-        if(m) return {role: m[1].toLowerCase(), text: m[2]};
-        return {role: 'teacher', text: l};
-      });
-    }
+let paused=false, stopped=false;
+async function playAll(){
+  const lines = parseDialogues();
+  if(lines.length===0){ currentDialogue.textContent = 'No valid dialogues found in JSON.'; return; }
+  if(speechSynthesis.speaking) speechSynthesis.cancel();
+  paused=false; stopped=false;
+  for(const l of lines){ if(stopped) break; await speakLine(l); while(paused && !stopped){ await new Promise(r=>setTimeout(r,150)); } }
+  if(!stopped){ currentSpeaker.textContent=''; currentDialogue.textContent='All dialogues finished.'; }
+}
 
-    function showSlide(line){
-      slideTopText.textContent = slideBottomText.textContent;
-      slideBottomText.textContent = line.text;
-    }
+playBtn.addEventListener('click', ()=>{ stopped=false; paused=false; playAll(); });
+pauseBtn.addEventListener('click', ()=>{ if(speechSynthesis.speaking){ speechSynthesis.pause(); paused=true; } });
+document.getElementById('resumeBtn').addEventListener('click', ()=>{ if(paused){ speechSynthesis.resume(); paused=false; } });
+document.getElementById('stopBtn').addEventListener('click', ()=>{ if(speechSynthesis.speaking||paused){ speechSynthesis.cancel(); stopped=true; paused=false; currentDialogue.textContent='Playback stopped.'; } });
 
-    function speakLine(line){
-      return new Promise((res)=>{
-        const u = new SpeechSynthesisUtterance(line.text);
-        if(line.role==='teacher' && teacherVoice) u.voice = teacherVoice;
-        if(line.role==='student' && studentVoice) u.voice = studentVoice;
-        u.rate = 1.0; u.pitch = line.role==='teacher'?1.0:1.05;
-        u.onstart = ()=>{ startSpeakingRole(line.role); currentSpeaker.textContent = line.role==='teacher' ? 'Teacher:' : 'Student:'; currentDialogue.textContent = line.text; showSlide(line); };
-        u.onend = ()=>{ stopSpeakingRole(line.role); setTimeout(res, 160); };
-        speechSynthesis.speak(u);
-      });
-    }
-
-    async function playAll(){
-      if(speechSynthesis.speaking) speechSynthesis.cancel();
-      const lines = parseDialogues();
-      slideTopText.textContent = '(previous slide)';
-      slideBottomText.textContent = '(current slide)';
-      for(const l of lines){
-        await speakLine(l);
-      }
-      currentSpeaker.textContent = '';
-      currentDialogue.textContent = 'All dialogues finished.';
-    }
-
-    playBtn.addEventListener('click', ()=>{ playAll(); });
-
-    if(teachingArea.classList.contains('collapsed')) playBtn.style.display='none';
-  </script>
+</script>
 </body>
 </html>

@@ -1,523 +1,339 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Binary Search — Synthetic Speak Demo (Dashboard)</title>
-  <style>
-    :root {
-      --blue: #0b78d1;
-      --orange: #f97316
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Heap Sort — Synthetic Speak Demo (Dashboard)</title>
+<style>
+  :root{--blue:#0b78d1;--orange:#f97316}
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:#f6f8fb;margin:0;padding:0;color:#0b1220}
+  header{background:#fff;padding:10px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:200}
+  .brand{font-weight:800;font-size:16px;color:var(--blue)}
+  .icon-btn{background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--blue);font-size:20px;line-height:1}
 
-    body {
-      font-family: Inter, system-ui, Arial, sans-serif;
-      background: #f6f8fb;
-      margin: 0;
-      padding: 0;
-      color: #0b1220
-    }
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;padding:14px}
+  .panel{background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
 
-    header {
-      background: #fff;
-      padding: 10px 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      position: relative;
-      z-index: 200
-    }
+  .avatars{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .avatar{width:110px;height:110px;border-radius:50%;overflow:hidden}
 
-    .brand {
-      font-weight: 800;
-      font-size: 16px;
-      color: var(--blue)
-    }
+  .slide{position:relative;margin:10px auto;width:100%;height:160px;background:#eef6ff;border-radius:10px;display:flex;align-items:center;gap:12px;font-weight:600;padding:12px}
+  .slide .slide-image{width:180px;height:100%;flex:0 0 180px;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:auto;background:white;border:1px solid #e6eefc}
+  .slide .slide-image img{max-width:100%;height:auto;display:block}
+  .slide .slide-text{flex:1;padding:8px;overflow:auto}
+  .slide.teacher{background:linear-gradient(90deg, rgba(11,120,209,0.06), rgba(255,255,255,0));border:1px solid rgba(11,120,209,0.12)}
+  .slide.student{background:linear-gradient(90deg, rgba(249,115,22,0.06), rgba(255,255,255,0));border:1px solid rgba(249,115,22,0.12)}
+  .slide-badge{position:absolute;top:8px;right:12px;padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px;color:white}
+  .slide-badge.teacher{background:var(--blue)}
+  .slide-badge.student{background:var(--orange)}
 
-    .icon-btn {
-      background: transparent;
-      border: 0;
-      padding: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--blue);
-      font-size: 20px;
-      line-height: 1
-    }
+  .dialogue-box{background:#fff;border-radius:10px;padding:14px;margin-top:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+  .status{font-size:13px;color:#475569;margin-bottom:8px}
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 14px;
-      padding: 14px
-    }
+  footer.controls{display:flex;justify-content:center;gap:10px;padding:12px}
+  .btn{padding:10px 14px;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer}
+  .primary{background:var(--blue)}
+  .warn{background:var(--orange)}
+  .success{background:#059669}
+  .danger{background:#ef4444}
 
-    .panel {
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06)
-    }
+  /* drawer uses display block / none per request */
+  .drawer{display:none;position:fixed;top:0;left:0;width:340px;height:100vh;background:#fff;box-shadow:4px 0 24px rgba(2,6,23,0.12);z-index:210;padding:18px;overflow:auto}
+  .drawer.open{display:block}
+  .drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(3,7,18,0.35);z-index:205}
+  .drawer-backdrop.open{display:block}
 
-    .avatars {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px
-    }
+  .mini-widget{position:fixed;top:12px;right:12px;width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#60a5fa);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;box-shadow:0 6px 20px rgba(2,6,23,0.18);z-index:200;visibility:hidden;opacity:0;transform:translateY(-6px);transition:all .18s ease}
+  .mini-widget.show{visibility:visible;opacity:1;transform:translateY(0)}
 
-    .avatar {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      overflow: hidden
-    }
+  .history{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
 
-    .slide {
-      position: relative;
-      margin: 10px auto;
-      width: 100%;
-      height: 140px;
-      background: #eef6ff;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      padding: 12px
-    }
+  textarea.json-input{width:100%;height:200px;padding:12px;border-radius:8px;border:1px solid #eef6ff;font-family:monospace}
 
-    .slide.teacher {
-      background: linear-gradient(90deg, rgba(11, 120, 209, 0.06), rgba(255, 255, 255, 0));
-      border: 1px solid rgba(11, 120, 209, 0.12)
-    }
-
-    .slide.student {
-      background: linear-gradient(90deg, rgba(249, 115, 22, 0.06), rgba(255, 255, 255, 0));
-      border: 1px solid rgba(249, 115, 22, 0.12)
-    }
-
-    .slide-badge {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      padding: 6px 8px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 12px;
-      color: white
-    }
-
-    .slide-badge.teacher {
-      background: var(--blue)
-    }
-
-    .slide-badge.student {
-      background: var(--orange)
-    }
-
-    .dialogue-box {
-      background: #fff;
-      border-radius: 10px;
-      padding: 14px;
-      margin-top: 10px;
-      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06)
-    }
-
-    .status {
-      font-size: 13px;
-      color: #475569;
-      margin-bottom: 8px
-    }
-
-    footer.controls {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      padding: 12px
-    }
-
-    .btn {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer
-    }
-
-    .primary {
-      background: var(--blue)
-    }
-
-    .warn {
-      background: var(--orange)
-    }
-
-    .success {
-      background: #059669
-    }
-
-    .danger {
-      background: #ef4444
-    }
-
-    /* drawer uses display block / none per request */
-    .drawer {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 340px;
-      height: 100vh;
-      background: #fff;
-      box-shadow: 4px 0 24px rgba(2, 6, 23, 0.12);
-      z-index: 210;
-      padding: 18px;
-      overflow: auto
-    }
-
-    .drawer.open {
-      display: block
-    }
-
-    .drawer-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(3, 7, 18, 0.35);
-      z-index: 205
-    }
-
-    .drawer-backdrop.open {
-      display: block
-    }
-
-    .mini-widget {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      width: 56px;
-      height: 56px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--blue), #60a5fa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-      box-shadow: 0 6px 20px rgba(2, 6, 23, 0.18);
-      z-index: 200;
-      visibility: hidden;
-      opacity: 0;
-      transform: translateY(-6px);
-      transition: all .18s ease
-    }
-
-    .mini-widget.show {
-      visibility: visible;
-      opacity: 1;
-      transform: translateY(0)
-    }
-
-    .history {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 60vh;
-      overflow: auto
-    }
-
-    textarea.json-input {
-      width: 100%;
-      height: 180px;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #eef6ff;
-      font-family: monospace
-    }
-
-    @media(max-width:900px) {
-      .layout {
-        grid-template-columns: 1fr
-      }
-    }
-  </style>
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+</style>
 </head>
-
 <body>
-  <header>
-    <div style="display:flex;align-items:center;gap:12px">
-      <button id="openDrawerBtn" class="icon-btn" title="Open drawer" aria-label="Open drawer">☰</button>
-      <div class="brand">Binary Search — Synthetic Speak Demo</div>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button id="openDrawerBtn" class="icon-btn" aria-label="Open drawer">☰</button>
+    <div class="brand">Heap Sort — Synthetic Speak Demo</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button id="collapseBtn" class="icon-btn" aria-label="Collapse to mini">⬇︎</button>
+  </div>
+</header>
+
+<!-- Drawer + backdrop -->
+<aside class="drawer" id="drawer">
+  <h3>Voice Controls</h3>
+  <p style="color:#475569">Choose voices and rates for teacher & student.</p>
+  <label style="display:block;margin-top:8px">Teacher Voice
+    <select id="teacherVoiceSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
+  </label>
+  <label style="display:block;margin-top:8px">Teacher Rate
+    <input id="teacherRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
+  </label>
+  <hr style="margin:12px 0" />
+  <label style="display:block;margin-top:8px">Student Voice
+    <select id="studentVoiceSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
+  </label>
+  <label style="display:block;margin-top:8px">Student Rate
+    <input id="studentRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
+  </label>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="drawerCloseBtn" class="btn primary">Done</button>
+    <button id="resetVoicesBtn" class="btn" style="background:#eef6ff;color:var(--blue)">Reset</button>
+  </div>
+</aside>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<div class="mini-widget" id="miniWidget"><button id="restoreBtn" style="background:transparent;border:0;color:white;cursor:pointer" aria-label="Restore">⇪</button></div>
+
+<div class="layout">
+  <div class="panel" id="mainPanel">
+    <div class="avatars">
+      <svg id="teacherAvatar" class="avatar" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="#0b78d1"/><circle cx="60" cy="45" r="18" fill="#fff"/><g class="mouth" transform="translate(0,0)"><ellipse cx="60" cy="80" rx="12" ry="4" fill="#000"/></g></svg>
+      <svg id="studentAvatar" class="avatar" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="#f97316"/><circle cx="60" cy="45" r="18" fill="#fff"/><g class="mouth" transform="translate(0,0)"><ellipse cx="60" cy="80" rx="12" ry="4" fill="#000"/></g></svg>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button id="collapseBtn" class="icon-btn" title="Collapse to mini" aria-label="Collapse to mini">⬇︎</button>
+
+    <div class="slide" id="slideTop">
+      <div class="slide-image" id="slideTopImage"></div>
+      <div class="slide-text" id="slideTopText"></div>
+      <div class="slide-badge" id="slideTopBadge"></div>
     </div>
-  </header>
 
-  <!-- Drawer + backdrop -->
-  <aside class="drawer" id="drawer">
-    <h3>Voice Controls</h3>
-    <p style="color:#475569">Choose voices and rates for teacher & student.</p>
-    <label style="display:block;margin-top:8px">Teacher Voice
-      <select id="teacherVoiceSelect"
-        style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
-    </label>
-    <label style="display:block;margin-top:8px">Teacher Rate
-      <input id="teacherRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
-    </label>
-    <hr style="margin:12px 0" />
-    <label style="display:block;margin-top:8px">Student Voice
-      <select id="studentVoiceSelect"
-        style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff"></select>
-    </label>
-    <label style="display:block;margin-top:8px">Student Rate
-      <input id="studentRate" type="range" min="0.6" max="1.5" step="0.05" value="1" style="width:100%" />
-    </label>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="drawerCloseBtn" class="btn primary">Done</button>
-      <button id="resetVoicesBtn" class="btn" style="background:#eef6ff;color:var(--blue)">Reset</button>
+    <div class="slide" id="slideBottom">
+      <div class="slide-image" id="slideBottomImage"></div>
+      <div class="slide-text" id="slideBottomText"></div>
+      <div class="slide-badge" id="slideBottomBadge"></div>
     </div>
-  </aside>
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
 
-  <div class="mini-widget" id="miniWidget"><button id="restoreBtn"
-      style="background:transparent;border:0;color:white;cursor:pointer" aria-label="Restore">⇪</button></div>
+    <div class="dialogue-box">
+      <div id="jsonStatus" class="status">JSON status: OK</div>
+      <div id="currentSpeaker" style="font-weight:700"></div>
+      <div id="currentDialogue">Click Play to begin the Heap Sort demo.</div>
+    </div>
 
-  <div class="layout">
-    <div class="panel" id="mainPanel">
-      <div class="avatars">
-        <svg id="teacherAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="tGrad" x1="0" x2="1">
-              <stop offset="0" stop-color="#0b78d1" />
-              <stop offset="1" stop-color="#60a5fa" />
-            </linearGradient>
-          </defs>
-          <rect width="120" height="120" rx="60" fill="url(#tGrad)" />
-          <circle cx="60" cy="38" r="18" fill="#fff" />
-          <g class="mouth" transform="translate(60,65)">
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#0b1220" />
-          </g>
-        </svg>
-        <svg id="studentAvatar" class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sGrad" x1="0" x2="1">
-              <stop offset="0" stop-color="#f97316" />
-              <stop offset="1" stop-color="#fb923c" />
-            </linearGradient>
-          </defs>
-          <rect width="120" height="120" rx="60" fill="url(#sGrad)" />
-          <circle cx="60" cy="38" r="18" fill="#fff" />
-          <g class="mouth" transform="translate(60,65)">
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#fff" stroke="#0b1220" stroke-width="1.4" />
-          </g>
-        </svg>
-      </div>
-
-      <div class="slide" id="slideTop">
-        <div id="slideTopText"></div>
-        <div class="slide-badge" id="slideTopBadge"></div>
-      </div>
-      <div class="slide" id="slideBottom">
-        <div id="slideBottomText"></div>
-        <div class="slide-badge" id="slideBottomBadge"></div>
-      </div>
-
-      <div class="dialogue-box">
-        <div id="jsonStatus" class="status">JSON status: OK</div>
-        <div id="currentSpeaker" style="font-weight:700"></div>
-        <div id="currentDialogue">Click Play to begin the Binary Search demo.</div>
-      </div>
-
-      <div style="margin-top:12px">
-        <label style="display:block;margin-bottom:6px">Dialogues JSON (editable):</label>
-        <textarea id="dialoguesText" class="json-input">[
-  {"role":"teacher","text":"Welcome to the Binary Search demo! Today we’ll learn how computers search efficiently in sorted data."},
-  {"role":"student","text":"Sounds interesting! How does binary search work?"},
-  {"role":"teacher","text":"Binary Search divides the search range by half each time. Imagine you’re looking for number 45 in a sorted array."},
-  {"role":"student","text":"So the array is sorted, right? Like [10, 20, 30, 40, 45, 50, 60]?"},
-  {"role":"teacher","text":"Exactly! First, we check the middle element. If it's less than 45, we search the right half; otherwise, the left."},
-  {"role":"student","text":"So that means we reduce the search space by half every step!"},
-  {"role":"teacher","text":"Yes! That’s why Binary Search has a time complexity of O(log n)."},
-  {"role":"student","text":"Wow, that’s much faster than linear search!"},
-  {"role":"teacher","text":"Correct. Let’s see it visually — suppose we start with [10, 20, 30, 40, 45, 50, 60]. The middle element is 40."},
-  {"role":"student","text":"40 is less than 45, so we now check [45, 50, 60]."},
-  {"role":"teacher","text":"Perfect! The new middle is 50, which is greater than 45. We go left and find 45!"},
-  {"role":"student","text":"That’s efficient! So Binary Search stops as soon as it finds the target."},
-  {"role":"teacher","text":"Exactly. And if it doesn’t find it, it stops when the range becomes empty."},
-  {"role":"student","text":"Makes sense. Thanks for explaining with the example!"},
-  {"role":"teacher","text":"You’re welcome! Practice writing it in code next — it’s fun and fast!"}
+    <div style="margin-top:12px">
+      <label style="display:block;margin-bottom:6px">Dialogues JSON (editable):</label>
+      <textarea id="dialoguesText" class="json-input">[
+  {"role":"teacher","text":"Welcome to today's class on Heap Sort!","img":"thumb0"},
+  {"role":"student","text":"Sir, what exactly is Heap Sort?","img":"thumb0"},
+  {"role":"teacher","text":"Heap Sort is a comparison-based sorting algorithm that uses a special binary tree structure called a heap.","img":"thumb1"},
+  {"role":"student","text":"A heap? You mean like a binary tree?","img":"thumb1"},
+  {"role":"teacher","text":"Yes! It's a complete binary tree where every parent is either greater than or equal to its children in a max heap, or smaller in a min heap.","img":"thumb1"},
+  {"role":"student","text":"Got it. So how does sorting happen using the heap?","img":"thumb2"},
+  {"role":"teacher","text":"First, we build a max heap from the array. Then we repeatedly remove the largest element (the root) and move it to the end of the array.","img":"thumb2"},
+  {"role":"student","text":"That sounds similar to selection sort but with a heap!","img":"thumb2"},
+  {"role":"teacher","text":"Exactly! But it’s more efficient — Heap Sort has a time complexity of O(n log n).","img":"thumb3"},
+  {"role":"student","text":"Could you walk me through an example?","img":"thumb0"},
+  {"role":"teacher","text":"Sure! Let's take [4, 10, 3, 5, 1]. We first build a max heap so the largest number 10 is at the root.","img":"thumb1"},
+  {"role":"student","text":"Then we swap 10 with the last element and reduce the heap size?","img":"thumb2"},
+  {"role":"teacher","text":"Yes! We heapify the remaining elements, repeat the process, and finally we get a sorted array [1, 3, 4, 5, 10].","img":"thumb4"},
+  {"role":"student","text":"That's neat! And it works in-place too, right?","img":"thumb4"},
+  {"role":"teacher","text":"Correct. No extra arrays are needed. That’s why Heap Sort is very memory-efficient.","img":"thumb4"}
 ]</textarea>
-      </div>
-
-      <footer class="controls">
-        <button id="playBtn" class="btn primary">Play</button>
-        <button id="pauseBtn" class="btn warn">Pause</button>
-        <button id="resumeBtn" class="btn success">Resume</button>
-        <button id="stopBtn" class="btn danger">Stop</button>
-      </footer>
     </div>
 
-    <aside class="panel" id="rightPanel">
-      <h4 style="margin-top:0">Activity Log</h4>
-      <div id="history" class="history">(no activity yet)</div>
-    </aside>
+    <footer class="controls">
+      <button id="playBtn" class="btn primary">Play</button>
+      <button id="pauseBtn" class="btn warn">Pause</button>
+      <button id="resumeBtn" class="btn success">Resume</button>
+      <button id="stopBtn" class="btn danger">Stop</button>
+    </footer>
   </div>
 
-  <script>
-    // DOM
-    const openDrawerBtn = document.getElementById('openDrawerBtn');
-    const drawer = document.getElementById('drawer');
-    const drawerBackdrop = document.getElementById('drawerBackdrop');
-    const drawerCloseBtn = document.getElementById('drawerCloseBtn');
-    const resetVoicesBtn = document.getElementById('resetVoicesBtn');
-    const collapseBtn = document.getElementById('collapseBtn');
-    const miniWidget = document.getElementById('miniWidget');
-    const restoreBtn = document.getElementById('restoreBtn');
+  <aside class="panel" id="rightPanel">
+    <h4>Activity Log</h4>
+    <div id="history" class="history">(no activity yet)</div>
+  </aside>
+</div>
+
+<script>
+// DOM
+const openDrawerBtn = document.getElementById('openDrawerBtn');
+const drawer = document.getElementById('drawer');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+const resetVoicesBtn = document.getElementById('resetVoicesBtn');
+const collapseBtn = document.getElementById('collapseBtn');
+const miniWidget = document.getElementById('miniWidget');
+const restoreBtn = document.getElementById('restoreBtn');
+const teacherVoiceSelect = document.getElementById('teacherVoiceSelect');
+const studentVoiceSelect = document.getElementById('studentVoiceSelect');
+const teacherRate = document.getElementById('teacherRate');
+const studentRate = document.getElementById('studentRate');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
+const stopBtn = document.getElementById('stopBtn');
+const slideTopText = document.getElementById('slideTopText');
+const slideBottomText = document.getElementById('slideBottomText');
+const slideTopImage = document.getElementById('slideTopImage');
+const slideBottomImage = document.getElementById('slideBottomImage');
+const slideTopBadge = document.getElementById('slideTopBadge');
+const slideBottomBadge = document.getElementById('slideBottomBadge');
+const historyEl = document.getElementById('history');
+const currentSpeaker = document.getElementById('currentSpeaker');
+const currentDialogue = document.getElementById('currentDialogue');
+const teacherAvatar = document.getElementById('teacherAvatar');
+const studentAvatar = document.getElementById('studentAvatar');
+const dialoguesText = document.getElementById('dialoguesText');
+const jsonStatus = document.getElementById('jsonStatus');
+
+// Drawer handlers
+function toggleDrawer(open){
+  if(open){ drawer.classList.add('open'); drawerBackdrop.classList.add('open'); populateVoices(); setTimeout(()=>{ if(teacherVoiceSelect) teacherVoiceSelect.focus(); },120); }
+  else { drawer.classList.remove('open'); drawerBackdrop.classList.remove('open'); }
+}
+openDrawerBtn.addEventListener('click', ()=>toggleDrawer(true));
+drawerBackdrop.addEventListener('click', ()=>toggleDrawer(false));
+if(drawerCloseBtn) drawerCloseBtn.addEventListener('click', ()=>toggleDrawer(false));
+if(resetVoicesBtn) resetVoicesBtn.addEventListener('click', ()=>{ teacherVoiceSelect.selectedIndex=0; studentVoiceSelect.selectedIndex=1; teacherRate.value=1; studentRate.value=1; populateVoices(); });
+window.addEventListener('keydown',(e)=>{ if(e.key === 'Escape') toggleDrawer(false); });
+
+// Collapse / restore
+collapseBtn.addEventListener('click', ()=>{ document.querySelector('.layout').style.display='none'; miniWidget.classList.add('show'); });
+if(restoreBtn) restoreBtn.addEventListener('click', ()=>{ document.querySelector('.layout').style.display='grid'; miniWidget.classList.remove('show'); });
+
+// thumb SVGs (illustrative images for slides)
+const thumbs = [
+  // initial array
+  `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg"><rect width="180" height="120" fill="#fff"/><text x="10" y="18" font-size="12" fill="#334155">Array:</text><g font-family="monospace" font-size="14" fill="#0b1220"><rect x="10" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="25" y="50" text-anchor="middle">4</text><rect x="50" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="65" y="50" text-anchor="middle">10</text><rect x="90" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="105" y="50" text-anchor="middle">3</text><rect x="130" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="145" y="50" text-anchor="middle">5</text><rect x="170" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="185" y="50" text-anchor="middle">1</text></g></svg>`,
+  // heapified
+  `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg"><rect width="180" height="120" fill="#fff"/><text x="10" y="18" font-size="12" fill="#334155">Max-heap:</text><g font-family="monospace" font-size="14" fill="#0b1220"><circle cx="90" cy="44" r="14" fill="#dbeafe"/><text x="90" y="48" text-anchor="middle">10</text><circle cx="46" cy="84" r="12" fill="#dbeafe"/><text x="46" y="88" text-anchor="middle">5</text><circle cx="134" cy="84" r="12" fill="#dbeafe"/><text x="134" y="88" text-anchor="middle">3</text><line x1="90" y1="58" x2="46" y2="72" stroke="#94a3b8"/><line x1="90" y1="58" x2="134" y2="72" stroke="#94a3b8"/></g></svg>`,
+  // swap root with last
+  `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg"><rect width="180" height="120" fill="#fff"/><text x="10" y="18" font-size="12" fill="#334155">Swap root &amp; end:</text><g font-family="monospace" font-size="14" fill="#0b1220"><rect x="10" y="30" width="30" height="30" rx="6" fill="#fee2e2"/><text x="25" y="50" text-anchor="middle">1</text><rect x="50" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="65" y="50" text-anchor="middle">5</text><rect x="90" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="105" y="50" text-anchor="middle">3</text><rect x="130" y="30" width="30" height="30" rx="6" fill="#fde68a"/><text x="145" y="50" text-anchor="middle">10</text></g></svg>`,
+  // heapify remaining
+  `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg"><rect width="180" height="120" fill="#fff"/><text x="10" y="18" font-size="12" fill="#334155">Heapify remaining:</text><g font-family="monospace" font-size="14" fill="#0b1220"><rect x="10" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="25" y="50" text-anchor="middle">1</text><rect x="50" y="30" width="30" height="30" rx="6" fill="#fde68a"/><text x="65" y="50" text-anchor="middle">5</text><rect x="90" y="30" width="30" height="30" rx="6" fill="#e6f0ff"/><text x="105" y="50" text-anchor="middle">3</text></g></svg>`,
+  // sorted
+  `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg"><rect width="180" height="120" fill="#fff"/><text x="10" y="18" font-size="12" fill="#334155">Sorted:</text><g font-family="monospace" font-size="14" fill="#0b1220"><rect x="10" y="30" width="30" height="30" rx="6" fill="#dcfce7"/><text x="25" y="50" text-anchor="middle">1</text><rect x="50" y="30" width="30" height="30" rx="6" fill="#dcfce7"/><text x="65" y="50" text-anchor="middle">3</text><rect x="90" y="30" width="30" height="30" rx="6" fill="#dcfce7"/><text x="105" y="50" text-anchor="middle">4</text><rect x="130" y="30" width="30" height="30" rx="6" fill="#dcfce7"/><text x="145" y="50" text-anchor="middle">5</text><rect x="170" y="30" width="30" height="30" rx="6" fill="#dcfce7"/><text x="185" y="50" text-anchor="middle">10</text></g></svg>`
+];
+let tIndex = 0; function nextThumb(){ return thumbs[tIndex++ % thumbs.length]; }
+
+// voice population
+let voices = [];
+function populateVoices(){
+  voices = speechSynthesis.getVoices() || [];
+  if(!voices.length){ setTimeout(populateVoices,300); return; }
+  const teacherVoiceSelect = document.getElementById('teacherVoiceSelect');
+  const studentVoiceSelect = document.getElementById('studentVoiceSelect');
+  teacherVoiceSelect.innerHTML=''; studentVoiceSelect.innerHTML='';
+  voices.forEach(v=>{ teacherVoiceSelect.appendChild(new Option(`${v.name} — ${v.lang}`, v.name)); studentVoiceSelect.appendChild(new Option(`${v.name} — ${v.lang}`, v.name)); });
+  if(voices.length){ teacherVoiceSelect.value = voices[0].name; studentVoiceSelect.value = voices[Math.min(1,voices.length-1)].name; }
+}
+speechSynthesis.onvoiceschanged = populateVoices; setTimeout(populateVoices,500);
+
+// parsing
+function parseDialogues(){
+  const raw = document.getElementById('dialoguesText').value.trim(); if(!raw) return [];
+  try{
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed) && parsed.every(it=>it.role && it.text)){
+      document.getElementById('jsonStatus').textContent = 'JSON status: OK';
+      return parsed.map(it=>({ role: String(it.role).toLowerCase(), text: String(it.text), img: it.img || null }));
+    }
+    document.getElementById('jsonStatus').textContent = 'JSON status: Invalid structure';
+    return [];
+  }catch(e){ document.getElementById('jsonStatus').textContent = 'JSON status: parse error'; return []; }
+}
+
+// helper to set image into slide-image container. supports:
+//  - 'thumbN' keys (maps to internal thumbs array)
+//  - data: or http(s) URLs (rendered via <img>)
+function setSlideImage(container, imgKey){
+  if(!container) return;
+  if(!imgKey){ container.innerHTML = ''; return; }
+  if(typeof imgKey === 'string' && imgKey.startsWith('thumb')){
+    const idx = parseInt(imgKey.replace('thumb',''),10) || 0;
+    container.innerHTML = thumbs[idx % thumbs.length] || '';
+    return;
+  }
+  if(typeof imgKey === 'string' && (imgKey.startsWith('data:') || imgKey.startsWith('http'))){
+    // safe rendering as an <img>
+    container.innerHTML = `<img src="${imgKey}" alt="slide image">`;
+    return;
+  }
+  // fallback: stringify
+  container.textContent = String(imgKey);
+}
+
+// slide update (text + image + badge)
+function pushSlide(line){
+  const topText = document.getElementById('slideTopText');
+  const bottomText = document.getElementById('slideBottomText');
+  const topImage = document.getElementById('slideTopImage');
+  const bottomImage = document.getElementById('slideBottomImage');
+  const topBadge = document.getElementById('slideTopBadge');
+  const bottomBadge = document.getElementById('slideBottomBadge');
+
+  // shift bottom -> top
+  topText.innerHTML = bottomText.innerHTML;
+  topImage.innerHTML = bottomImage.innerHTML;
+  topBadge.className = bottomBadge.className;
+  topBadge.textContent = bottomBadge.textContent;
+
+  // set bottom to new
+  bottomText.innerHTML = line.text;
+  // set image: prefer explicit img key from JSON; fallback to next internal thumb
+  if(line.img){ setSlideImage(bottomImage, line.img); }
+  else { bottomImage.innerHTML = nextThumb(); }
+  bottomBadge.className = 'slide-badge ' + (line.role==='teacher' ? 'teacher' : 'student');
+  bottomBadge.textContent = line.role==='teacher' ? 'Teacher' : 'Student';
+
+  // add to history
+  const row = document.createElement('div'); row.textContent = `${line.role.toUpperCase()}: ${line.text}`; document.getElementById('history').prepend(row);
+}
+
+// mouth animation
+function animateMouth(avatar){ const mouth = avatar.querySelector('.mouth ellipse'); if(!mouth) return null; let s=1; return setInterval(()=>{ s = s===1?1.3:1; mouth.setAttribute('transform', `scale(1,${s})`); }, 200); }
+
+function speakLine(line){
+  return new Promise(res=>{
+    const u = new SpeechSynthesisUtterance(line.text);
     const teacherVoiceSelect = document.getElementById('teacherVoiceSelect');
     const studentVoiceSelect = document.getElementById('studentVoiceSelect');
-    const teacherRate = document.getElementById('teacherRate');
-    const studentRate = document.getElementById('studentRate');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const resumeBtn = document.getElementById('resumeBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const slideTopText = document.getElementById('slideTopText');
-    const slideBottomText = document.getElementById('slideBottomText');
-    const slideTopBadge = document.getElementById('slideTopBadge');
-    const slideBottomBadge = document.getElementById('slideBottomBadge');
-    const slideTopThumb = document.getElementById('slideTopThumb');
-    const slideBottomThumb = document.getElementById('slideBottomThumb');
-    const historyEl = document.getElementById('history');
-    const currentSpeaker = document.getElementById('currentSpeaker');
-    const currentDialogue = document.getElementById('currentDialogue');
-    const teacherAvatar = document.getElementById('teacherAvatar');
-    const studentAvatar = document.getElementById('studentAvatar');
-    const dialoguesText = document.getElementById('dialoguesText');
-    const jsonStatus = document.getElementById('jsonStatus');
+    const vName = (line.role==='teacher') ? teacherVoiceSelect.value : studentVoiceSelect.value;
+    const v = voices.find(x=>x.name===vName) || voices.find(x=>/en/i.test(x.lang)) || null;
+    if(v) u.voice = v;
+    u.rate = (line.role==='teacher') ? parseFloat(teacherRate.value) : parseFloat(studentRate.value);
+    let anim = null;
+    u.onstart = ()=>{
+      currentSpeaker.textContent = (line.role==='teacher') ? 'Teacher:' : 'Student:';
+      currentDialogue.textContent = line.text;
+      pushSlide(line);
+      const avatar = (line.role==='teacher') ? teacherAvatar : studentAvatar;
+      anim = animateMouth(avatar);
+    };
+    u.onend = ()=>{
+      if(anim) clearInterval(anim);
+      const avatar = (line.role==='teacher') ? teacherAvatar : studentAvatar;
+      const mouth = avatar.querySelector('.mouth ellipse'); if(mouth) mouth.setAttribute('transform','scale(1,1)');
+      setTimeout(res,120);
+    };
+    speechSynthesis.speak(u);
+  });
+}
 
-    // Drawer handlers - improved toggle and accessibility
-    function toggleDrawer(open) {
-      if (open) {
-        drawer.classList.add('open'); drawerBackdrop.classList.add('open');
-        // ensure voices are populated when opening
-        populateVoices();
-        // focus first select for keyboard users
-        setTimeout(() => { if (teacherVoiceSelect) teacherVoiceSelect.focus(); }, 120);
-      } else { drawer.classList.remove('open'); drawerBackdrop.classList.remove('open'); }
-    }
-    openDrawerBtn.addEventListener('click', () => toggleDrawer(true));
-    drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
-    if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', () => toggleDrawer(false));
-    if (resetVoicesBtn) resetVoicesBtn.addEventListener('click', () => { teacherVoiceSelect.selectedIndex = 0; studentVoiceSelect.selectedIndex = 1; teacherRate.value = 1; studentRate.value = 1; populateVoices(); });
-    // close with Escape key
-    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleDrawer(false); });
+let paused=false, stopped=false;
+async function playAll(){
+  const lines = parseDialogues(); if(lines.length===0){ currentDialogue.textContent='No valid dialogues found.'; return; }
+  if(speechSynthesis.speaking) speechSynthesis.cancel(); paused=false; stopped=false;
+  for(const l of lines){ if(stopped) break; await speakLine(l); while(paused && !stopped) await new Promise(r=>setTimeout(r,150)); }
+  if(!stopped){ currentSpeaker.textContent=''; currentDialogue.textContent='All dialogues finished.'; }
+}
 
-    // Collapse / restore
-    collapseBtn.addEventListener('click', () => { document.querySelector('.layout').style.display = 'none'; miniWidget.classList.add('show'); });
-    restoreBtn.addEventListener('click', () => { document.querySelector('.layout').style.display = 'grid'; miniWidget.classList.remove('show'); });
+// controls
+playBtn.addEventListener('click', ()=>{ stopped=false; paused=false; playAll(); });
+pauseBtn.addEventListener('click', ()=>{ if(speechSynthesis.speaking) { speechSynthesis.pause(); paused=true; } });
+resumeBtn.addEventListener('click', ()=>{ if(paused){ speechSynthesis.resume(); paused=false; } });
+stopBtn.addEventListener('click', ()=>{ if(speechSynthesis.speaking||paused){ speechSynthesis.cancel(); stopped=true; paused=false; currentDialogue.textContent='Playback stopped.'; } });
 
-    // thumbs (visuals)
-    const thumbs = []; for (let i = 0; i < 8; i++) thumbs.push(`<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='80' rx='8' fill='hsl(${i * 40},80%,90%)'/><circle cx='36' cy='40' r='18' fill='hsl(${i * 40},60%,50%)'/></svg>`);
-    let tIndex = 0; function nextThumb() { return thumbs[tIndex++ % thumbs.length]; }
-    // make sure slide thumbs elements exist before using (some versions don't render thumb elements)
-    if (slideTopThumb) slideTopThumb.innerHTML = nextThumb();
-    if (slideBottomThumb) slideBottomThumb.innerHTML = nextThumb();
+// initialise first two slide images
+setSlideImage(document.getElementById('slideTopImage'),'thumb0');
+setSlideImage(document.getElementById('slideBottomImage'),'thumb1');
 
-    // voice population
-    let voices = [];
-    function populateVoices() {
-      voices = speechSynthesis.getVoices(); teacherVoiceSelect.innerHTML = ''; studentVoiceSelect.innerHTML = '';
-      voices.forEach(v => { const o1 = new Option(`${v.name} — ${v.lang}`, v.name); const o2 = new Option(`${v.name} — ${v.lang}`, v.name); teacherVoiceSelect.appendChild(o1); studentVoiceSelect.appendChild(o2); });
-      if (voices.length) { teacherVoiceSelect.value = voices[0].name; studentVoiceSelect.value = voices[Math.min(1, voices.length - 1)].name; }
-    }
-    speechSynthesis.onvoiceschanged = populateVoices; setTimeout(populateVoices, 300);
-
-    function parseDialogues() {
-      const raw = dialoguesText.value.trim(); if (!raw) return [];
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.every(it => it.role && it.text)) {
-          jsonStatus.textContent = 'JSON status: OK';
-          return parsed.map(it => ({ role: String(it.role).toLowerCase(), text: String(it.text) }));
-        } else {
-          jsonStatus.textContent = 'JSON status: Invalid structure — expected [{role:,text:}, ...]';
-          return [];
-        }
-      } catch (e) {
-        jsonStatus.textContent = 'JSON status: parse error — check JSON';
-        return [];
-      }
-    }
-
-    function pushSlide(line) {
-      // move bottom to top
-      slideTopText.innerHTML = slideBottomText.innerHTML;
-      slideTopBadge.className = slideBottomBadge.className; slideTopBadge.textContent = slideBottomBadge.textContent;
-      // set bottom
-      slideBottomText.innerHTML = line.text;
-      slideBottomBadge.className = 'slide-badge ' + (line.role === 'teacher' ? 'teacher' : 'student');
-      slideBottomBadge.textContent = line.role === 'teacher' ? 'Teacher' : 'Student';
-      // record to activity log
-      const row = document.createElement('div'); row.textContent = `${line.role.toUpperCase()}: ${line.text}`; historyEl.prepend(row);
-    }
-
-    function animateMouth(avatar) {
-      const mouth = avatar.querySelector('.mouth ellipse');
-      let s = 1;
-      return setInterval(() => { s = s === 1 ? 1.3 : 1; mouth.setAttribute('transform', `scale(1,${s})`); }, 200);
-    }
-
-    function speakLine(line) {
-      return new Promise(res => {
-        const u = new SpeechSynthesisUtterance(line.text);
-        // select voice based on drawer selection if available
-        const vName = (line.role === 'teacher') ? teacherVoiceSelect.value : studentVoiceSelect.value;
-        const v = voices.find(x => x.name === vName) || voices.find(x => /en/i.test(x.lang));
-        if (v) u.voice = v;
-        u.rate = (line.role === 'teacher') ? parseFloat(teacherRate.value) : parseFloat(studentRate.value);
-        let anim;
-        u.onstart = () => {
-          currentSpeaker.textContent = line.role === 'teacher' ? 'Teacher:' : 'Student:';
-          currentDialogue.textContent = line.text;
-          pushSlide(line);
-          const avatar = (line.role === 'teacher') ? teacherAvatar : studentAvatar;
-          anim = animateMouth(avatar);
-        };
-        u.onend = () => {
-          clearInterval(anim);
-          const avatar = (line.role === 'teacher') ? teacherAvatar : studentAvatar;
-          avatar.querySelector('.mouth ellipse').setAttribute('transform', 'scale(1,1)');
-          setTimeout(res, 120);
-        };
-        speechSynthesis.speak(u);
-      });
-    }
-
-    let paused = false, stopped = false;
-    async function playAll() {
-      const lines = parseDialogues();
-      if (lines.length === 0) { currentDialogue.textContent = 'No valid dialogues found in JSON.'; return; }
-      if (speechSynthesis.speaking) speechSynthesis.cancel();
-      paused = false; stopped = false;
-      for (const l of lines) { if (stopped) break; await speakLine(l); while (paused && !stopped) { await new Promise(r => setTimeout(r, 150)); } }
-      if (!stopped) { currentSpeaker.textContent = ''; currentDialogue.textContent = 'All dialogues finished.'; }
-    }
-
-    playBtn.addEventListener('click', () => { stopped = false; paused = false; playAll(); });
-    pauseBtn.addEventListener('click', () => { if (speechSynthesis.speaking) { speechSynthesis.pause(); paused = true; } });
-    document.getElementById('resumeBtn').addEventListener('click', () => { if (paused) { speechSynthesis.resume(); paused = false; } });
-    document.getElementById('stopBtn').addEventListener('click', () => { if (speechSynthesis.speaking || paused) { speechSynthesis.cancel(); stopped = true; paused = false; currentDialogue.textContent = 'Playback stopped.'; } });
-
-  </script>
+</script>
 </body>
-
 </html>
